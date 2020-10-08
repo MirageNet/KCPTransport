@@ -20,6 +20,7 @@ namespace Mirror.KCP
         private Socket _socket;
         private KcpProject.KCP _kcp;
         private ByteBuffer _receiveBuffer = ByteBuffer.Allocate(1024 * 32);
+        private uint _nextUpdateTime = 0;
 
         #endregion
 
@@ -27,7 +28,25 @@ namespace Mirror.KCP
 
         public KcpConnection(Socket handler)
         {
+            if(handler == null) return;
+
             _socket = handler;
+
+            _ = Task.Run(Tick);
+        }
+
+        private void Tick()
+        {
+            while(_socket != null)
+            {
+                while (0 != _nextUpdateTime && _kcp.CurrentMS < _nextUpdateTime)
+                {
+                    Task.Delay(100);
+                }
+
+                _kcp.Update();
+                _nextUpdateTime = _kcp.Check();
+            }
         }
 
         public async Task<IConnection> Connect(string address, ushort port)
@@ -52,6 +71,8 @@ namespace Mirror.KCP
                 _kcp.SetStreamMode(true);
                 _receiveBuffer.Clear();
 
+                _ = Task.Run(Tick);
+
                 return this;
             }
             catch (Exception ex)
@@ -73,7 +94,17 @@ namespace Mirror.KCP
 
         public Task SendAsync(ArraySegment<byte> data)
         {
-            throw new NotImplementedException();
+            byte[] buffer = new byte[data.Count];
+
+            Array.Copy(data.Array, data.Offset, buffer, 0, data.Count);
+
+            int result = _kcp.Send(buffer);
+
+            Debug.Log(result == 1
+                ? $"Connection sent data: {BitConverter.ToString(data.Array)}"
+                : $"Connection failed to send data: {BitConverter.ToString(data.Array)}");
+
+            return result == 1 ? Task.CompletedTask : null;
         }
 
         /// <summary>
@@ -83,7 +114,14 @@ namespace Mirror.KCP
         /// <returns>true if we got a message, false if we got disconnected</returns>
         public Task<bool> ReceiveAsync(MemoryStream buffer)
         {
-            throw new NotImplementedException();
+            buffer.TryGetBuffer(out ArraySegment<byte> byteBuffer);
+
+            while (_kcp.Recv(byteBuffer.Array) > -1)
+            {
+                return Task.FromResult(true);
+            }
+
+            return Task.FromResult(false);
         }
 
         /// <summary>

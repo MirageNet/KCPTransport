@@ -13,6 +13,7 @@ namespace Mirror.KCP
     public sealed class Server
     {
         private Socket _socket;
+        private TcpListener _socketListener;
 
         #region Class Specific
 
@@ -43,7 +44,9 @@ namespace Mirror.KCP
                 IPEndPoint localEndPoint = new IPEndPoint(ipAddress, port);
 
                 _socket.Bind(localEndPoint);
-                _socket.Listen(1);
+
+                _socketListener = new TcpListener(localEndPoint);
+                _socketListener.Start(100);
 
                 Debug.Log("Server started finished starting up.");
             }
@@ -59,23 +62,22 @@ namespace Mirror.KCP
         /// <returns></returns>
         public async Task<Socket> AcceptAsync()
         {
-            while (_socket != null)
-            {
-                Debug.Log("Too many users connected to server. Please wait until server has room.");
+            if (_socketListener == null) return null;
 
-                await Task.Delay(5000);
-            }
+            Socket client = await _socketListener.AcceptSocketAsync();
 
-            Debug.Log("Server is now listening for incoming connections");
+            Debug.Log($"Incoming connection: {client.RemoteEndPoint}");
 
-            return await _socket.AcceptAsync();
+            return client;
         }
         /// <summary>
         ///     Shutdown the server and stop listening for connections.
         /// </summary>
         public void Shutdown()
         {
-            _socket?.Close();
+            _socketListener.Stop();
+            _socket.Close();
+            _socket.Dispose();
             _socket = null;
         }
 
