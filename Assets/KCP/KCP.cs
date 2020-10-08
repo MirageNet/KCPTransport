@@ -309,7 +309,7 @@ namespace KcpProject
             {
                 int size = Math.Min(length, (int)Mss);
 
-                Segment seg = Segment.Get(size);
+                var seg = Segment.Get(size);
                 seg.data.WriteBytes(buffer, index, size);
                 index += size;
                 length -= size;
