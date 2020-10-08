@@ -108,12 +108,12 @@ namespace KcpProject
         }
 
         // kcp members.
-        uint conv; uint mtu; uint mss;
+        uint conv; uint mtu;
         uint snd_una; uint snd_nxt; uint rcv_nxt;
         uint ssthresh;
         uint rx_rttval; uint rx_srtt;
         uint rx_rto; uint rx_minrto;
-        uint snd_wnd; uint rcv_wnd; uint rmt_wnd; uint cwnd; uint probe;
+        uint cwnd; uint probe;
         uint interval; uint ts_flush;
         uint nodelay; uint updated;
         uint ts_probe; uint probe_wait;
@@ -132,10 +132,10 @@ namespace KcpProject
         readonly Action<byte[], int> output; // buffer, size
 
         // send windowd & recv window
-        public uint SndWnd { get { return snd_wnd; } }
-        public uint RcvWnd { get { return rcv_wnd; } }
-        public uint RmtWnd { get { return rmt_wnd; } }
-        public uint Mss { get { return mss; } }
+        public uint SndWnd { get; private set; }
+        public uint RcvWnd { get; private set; }
+        public uint RmtWnd { get; private set; }
+        public uint Mss { get; private set; }
 
         // get how many packet is waiting to be sent
         public int WaitSnd { get { return snd_buf.Count + snd_queue.Count; } }
@@ -148,11 +148,11 @@ namespace KcpProject
         public KCP(uint conv_, Action<byte[], int> output_)
         {
             conv = conv_;
-            snd_wnd = IKCP_WND_SND;
-            rcv_wnd = IKCP_WND_RCV;
-            rmt_wnd = IKCP_WND_RCV;
+            SndWnd = IKCP_WND_SND;
+            RcvWnd = IKCP_WND_RCV;
+            RmtWnd = IKCP_WND_RCV;
             mtu = IKCP_MTU_DEF;
-            mss = mtu - IKCP_OVERHEAD;
+            Mss = mtu - IKCP_OVERHEAD;
             rx_rto = IKCP_RTO_DEF;
             rx_minrto = IKCP_RTO_MIN;
             interval = IKCP_INTERVAL;
@@ -210,7 +210,7 @@ namespace KcpProject
                 return -2;
 
             bool fast_recover = false;
-            if (rcv_queue.Count >= rcv_wnd)
+            if (rcv_queue.Count >= RcvWnd)
                 fast_recover = true;
 
             // merge fragment.
@@ -237,7 +237,7 @@ namespace KcpProject
             count = 0;
             foreach (Segment seg in rcv_buf)
             {
-                if (seg.sn == rcv_nxt && rcv_queue.Count + count < rcv_wnd)
+                if (seg.sn == rcv_nxt && rcv_queue.Count + count < RcvWnd)
                 {
                     rcv_queue.Add(seg);
                     rcv_nxt++;
@@ -255,7 +255,7 @@ namespace KcpProject
             }
 
             // fast recover
-            if (rcv_queue.Count < rcv_wnd && fast_recover)
+            if (rcv_queue.Count < RcvWnd && fast_recover)
             {
                 // ready to send back IKCP_CMD_WINS in ikcp_flush
                 // tell remote my window size
@@ -281,9 +281,9 @@ namespace KcpProject
                 if (n > 0)
                 {
                     Segment seg = snd_queue[n - 1];
-                    if (seg.data.ReadableBytes < mss)
+                    if (seg.data.ReadableBytes < Mss)
                     {
-                        int capacity = (int)(mss - seg.data.ReadableBytes);
+                        int capacity = (int)(Mss - seg.data.ReadableBytes);
                         int writen = Math.Min(capacity, length);
                         seg.data.WriteBytes(buffer, index, writen);
                         index += writen;
@@ -296,10 +296,10 @@ namespace KcpProject
                 return 0;
 
             int count;
-            if (length <= mss)
+            if (length <= Mss)
                 count = 1;
             else
-                count = (int)(((length) + mss - 1) / mss);
+                count = (int)(((length) + Mss - 1) / Mss);
 
             if (count > 255) return -2;
 
@@ -307,7 +307,7 @@ namespace KcpProject
 
             for (int i = 0; i < count; i++)
             {
-                int size = Math.Min(length, (int)mss);
+                int size = Math.Min(length, (int)Mss);
 
                 Segment seg = Segment.Get(size);
                 seg.data.WriteBytes(buffer, index, size);
@@ -421,7 +421,7 @@ namespace KcpProject
         bool parse_data(Segment newseg)
         {
             uint sn = newseg.sn;
-            if (_itimediff(sn, rcv_nxt + rcv_wnd) >= 0 || _itimediff(sn, rcv_nxt) < 0)
+            if (_itimediff(sn, rcv_nxt + RcvWnd) >= 0 || _itimediff(sn, rcv_nxt) < 0)
                 return true;
 
             int n = rcv_buf.Count - 1;
@@ -455,7 +455,7 @@ namespace KcpProject
             int count = 0;
             foreach (Segment seg in rcv_buf)
             {
-                if (seg.sn == rcv_nxt && rcv_queue.Count + count < rcv_wnd)
+                if (seg.sn == rcv_nxt && rcv_queue.Count + count < RcvWnd)
                 {
                     rcv_nxt++;
                     count++;
@@ -531,7 +531,7 @@ namespace KcpProject
                 // only trust window updates from regular packets. i.e: latest update
                 if (regular)
                 {
-                    rmt_wnd = wnd;
+                    RmtWnd = wnd;
                 }
 
                 parse_una(una);
@@ -547,7 +547,7 @@ namespace KcpProject
                 else if (IKCP_CMD_PUSH == cmd)
                 {
                     bool repeat = true;
-                    if (_itimediff(sn, rcv_nxt + rcv_wnd) < 0)
+                    if (_itimediff(sn, rcv_nxt + RcvWnd) < 0)
                     {
                         ack_push(sn, ts);
                         if (_itimediff(sn, rcv_nxt) >= 0)
@@ -600,9 +600,9 @@ namespace KcpProject
             {
                 if (_itimediff(snd_una, s_una) > 0)
                 {
-                    if (cwnd < rmt_wnd)
+                    if (cwnd < RmtWnd)
                     {
-                        uint _mss = mss;
+                        uint _mss = Mss;
                         if (cwnd < ssthresh)
                         {
                             cwnd++;
@@ -623,10 +623,10 @@ namespace KcpProject
                                     cwnd = incr + _mss - 1;
                             }
                         }
-                        if (cwnd > rmt_wnd)
+                        if (cwnd > RmtWnd)
                         {
-                            cwnd = rmt_wnd;
-                            incr = rmt_wnd * _mss;
+                            cwnd = RmtWnd;
+                            incr = RmtWnd * _mss;
                         }
                     }
                 }
@@ -643,8 +643,8 @@ namespace KcpProject
 
         ushort wnd_unused()
         {
-            if (rcv_queue.Count < rcv_wnd)
-                return (ushort)(rcv_wnd - rcv_queue.Count);
+            if (rcv_queue.Count < RcvWnd)
+                return (ushort)(RcvWnd - rcv_queue.Count);
             return 0;
         }
 
@@ -699,7 +699,7 @@ namespace KcpProject
 
             uint current = 0;
             // probe window size (if remote window size equals zero)
-            if (0 == rmt_wnd)
+            if (0 == RmtWnd)
             {
                 current = currentMS();
                 if (0 == probe_wait)
@@ -745,7 +745,7 @@ namespace KcpProject
             probe = 0;
 
             // calculate window size
-            uint cwnd_ = Math.Min(snd_wnd, rmt_wnd);
+            uint cwnd_ = Math.Min(SndWnd, RmtWnd);
             if (0 == nocwnd)
                 cwnd_ = Math.Min(cwnd, cwnd_);
 
@@ -859,7 +859,7 @@ namespace KcpProject
                     if (ssthresh < IKCP_THRESH_MIN)
                         ssthresh = IKCP_THRESH_MIN;
                     cwnd = ssthresh + resent;
-                    incr = cwnd * mss;
+                    incr = cwnd * Mss;
                 }
 
                 // congestion control, https://tools.ietf.org/html/rfc5681
@@ -869,13 +869,13 @@ namespace KcpProject
                     if (ssthresh < IKCP_THRESH_MIN)
                         ssthresh = IKCP_THRESH_MIN;
                     cwnd = 1;
-                    incr = mss;
+                    incr = Mss;
                 }
 
                 if (cwnd < 1)
                 {
                     cwnd = 1;
-                    incr = mss;
+                    incr = Mss;
                 }
             }
 
@@ -968,7 +968,7 @@ namespace KcpProject
                 return -2;
 
             mtu = (uint)mtu_;
-            mss = mtu - IKCP_OVERHEAD - (uint)reserved;
+            Mss = mtu - IKCP_OVERHEAD - (uint)reserved;
             buffer = buffer_;
             return 0;
         }
@@ -1012,10 +1012,10 @@ namespace KcpProject
         public int WndSize(int sndwnd, int rcvwnd)
         {
             if (sndwnd > 0)
-                snd_wnd = (uint)sndwnd;
+                SndWnd = (uint)sndwnd;
 
             if (rcvwnd > 0)
-                rcv_wnd = (uint)rcvwnd;
+                RcvWnd = (uint)rcvwnd;
             return 0;
         }
 
@@ -1025,7 +1025,7 @@ namespace KcpProject
                 return false;
 
             reserved = reservedSize;
-            mss = mtu - IKCP_OVERHEAD - (uint)(reservedSize);
+            Mss = mtu - IKCP_OVERHEAD - (uint)(reservedSize);
             return true;
         }
 
