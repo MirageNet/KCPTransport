@@ -8,7 +8,7 @@
         }],
         ["@semantic-release/npm", {
             "npmPublish": false,
-            "pkgRoot": "Assets/Mirror"
+            "pkgRoot": "Assets/KCP"
         }],
         ["@semantic-release/git", {
             "assets": ["Assets/package.json", "Assets/CHANGELOG.md"],
