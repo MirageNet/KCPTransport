@@ -31,7 +31,7 @@ namespace KcpProject
             mSocket.Connect(endpoint, port);
             RemoteAddress = (IPEndPoint)mSocket.RemoteEndPoint;
             LocalAddress = (IPEndPoint)mSocket.LocalEndPoint;
-            mKCP = new KCP((uint)(new Random().Next(1, Int32.MaxValue)), rawSend);
+            mKCP = new KCP((uint)(new Random().Next(1, int.MaxValue)), rawSend);
             // normal:  0, 40, 2, 1
             // fast:    0, 30, 2, 1
             // fast2:   1, 20, 2, 1
@@ -89,13 +89,13 @@ namespace KcpProject
 
         public int Recv(byte[] data, int index, int length)
         {
-            // 上次剩下的部分
+            // remaining part from last time
             if (mRecvBuffer.ReadableBytes > 0)
             {
                 int recvBytes = Math.Min(mRecvBuffer.ReadableBytes, length);
                 Buffer.BlockCopy(mRecvBuffer.RawBuffer, mRecvBuffer.ReaderIndex, data, index, recvBytes);
                 mRecvBuffer.ReaderIndex += recvBytes;
-                // 读完重置读写指针
+                // reset read/write pointer after reading
                 if (mRecvBuffer.ReaderIndex == mRecvBuffer.WriterIndex)
                 {
                     mRecvBuffer.Clear();
@@ -136,8 +136,8 @@ namespace KcpProject
             }
             mRecvBuffer.Clear();
 
-            // 读完所有完整的消息
-            for (; ; )
+            // read all complete messages
+            while (true)
             {
                 int size = mKCP.PeekSize();
                 if (size <= 0) break;
@@ -148,7 +148,7 @@ namespace KcpProject
                 if (n > 0) mRecvBuffer.WriterIndex += n;
             }
 
-            // 有数据待接收
+            // there's data to be received
             if (mRecvBuffer.ReadableBytes > 0)
             {
                 return Recv(data, index, length);
