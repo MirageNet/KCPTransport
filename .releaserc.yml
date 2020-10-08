@@ -5,14 +5,14 @@
         "@semantic-release/release-notes-generator", 
         "@semantic-release/commit-analyzer",
         ["@semantic-release/changelog", {
-            "changelogFile": "Assets/CHANGELOG.md",
+            "changelogFile": "Assets/KCP/CHANGELOG.md",
         }],
         ["@semantic-release/npm", {
             "npmPublish": false,
-            "pkgRoot": "Assets/Mirror"
+            "pkgRoot": "Assets/KCP"
         }],
         ["@semantic-release/git", {
-            "assets": ["Assets/package.json", "Assets/CHANGELOG.md"],
+            "assets": ["Assets/KCP/package.json", "Assets/KCP/CHANGELOG.md"],
             "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
         }],
     ]
