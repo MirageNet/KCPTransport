@@ -111,7 +111,7 @@ namespace KcpProject
         uint interval; uint ts_flush;
         uint nodelay; uint updated;
         uint ts_probe; uint probe_wait;
-        uint dead_link; uint incr;
+        uint incr;
 
         int fastresend;
         int nocwnd; int stream;
@@ -152,7 +152,6 @@ namespace KcpProject
             interval = IKCP_INTERVAL;
             ts_flush = IKCP_INTERVAL;
             ssthresh = IKCP_THRESH_INIT;
-            dead_link = IKCP_DEADLINK;
             buffer = new byte[mtu];
             output = output_;
         }
