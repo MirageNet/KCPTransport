@@ -735,7 +735,7 @@ namespace KcpProject
                     WriteShort((short)value);
                     break;
                 case DataType.LONG:
-                    WriteLong((long)value);
+                    WriteLong(value);
                     break;
                 default:
                     WriteInt(value);
@@ -753,11 +753,11 @@ namespace KcpProject
             switch (type)
             {
                 case DataType.BYTE:
-                    return (int)ReadByte();
+                    return ReadByte();
                 case DataType.SHORT:
-                    return (int)ReadShort();
+                    return ReadShort();
                 case DataType.INT:
-                    return (int)ReadInt();
+                    return ReadInt();
                 case DataType.LONG:
                     return (int)ReadLong();
                 default:
