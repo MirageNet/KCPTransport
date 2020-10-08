@@ -539,7 +539,6 @@ namespace KcpProject
                 }
                 else if (IKCP_CMD_PUSH == cmd)
                 {
-                    bool repeat = true;
                     if (sn < rcv_nxt + RcvWnd)
                     {
                         AckPush(sn, ts);
@@ -554,7 +553,7 @@ namespace KcpProject
                             seg.sn = sn;
                             seg.una = una;
                             seg.data.WriteBytes(data, offset, (int)length);
-                            repeat = ParseData(seg);
+                            _ = ParseData(seg);
                         }
                     }
                 }
