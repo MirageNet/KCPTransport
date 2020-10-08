@@ -30,21 +30,21 @@ namespace KcpProject
 
 
         // encode 8 bits unsigned int
-        public static int ikcp_encode8u(byte[] p, int offset, byte c)
+        public static int Encode8u(byte[] p, int offset, byte c)
         {
             p[0 + offset] = c;
             return 1;
         }
 
         // decode 8 bits unsigned int
-        public static int ikcp_decode8u(byte[] p, int offset, ref byte c)
+        public static int Decode8u(byte[] p, int offset, ref byte c)
         {
             c = p[0 + offset];
             return 1;
         }
 
         /* encode 16 bits unsigned int (lsb) */
-        public static int ikcp_encode16u(byte[] p, int offset, ushort w)
+        public static int Encode16U(byte[] p, int offset, ushort w)
         {
             p[0 + offset] = (byte)(w >> 0);
             p[1 + offset] = (byte)(w >> 8);
@@ -52,7 +52,7 @@ namespace KcpProject
         }
 
         /* decode 16 bits unsigned int (lsb) */
-        public static int ikcp_decode16u(byte[] p, int offset, ref ushort c)
+        public static int Decode16U(byte[] p, int offset, ref ushort c)
         {
             ushort result = 0;
             result |= p[0 + offset];
@@ -62,7 +62,7 @@ namespace KcpProject
         }
 
         /* encode 32 bits unsigned int (lsb) */
-        public static int ikcp_encode32u(byte[] p, int offset, uint l)
+        public static int Encode32U(byte[] p, int offset, uint l)
         {
             p[0 + offset] = (byte)(l >> 0);
             p[1 + offset] = (byte)(l >> 8);
@@ -72,7 +72,7 @@ namespace KcpProject
         }
 
         /* decode 32 bits unsigned int (lsb) */
-        public static int ikcp_decode32u(byte[] p, int offset, ref uint c)
+        public static int Decode32U(byte[] p, int offset, ref uint c)
         {
             uint result = 0;
             result |= p[0 + offset];
@@ -503,17 +503,17 @@ namespace KcpProject
 
                 if (size - (offset - index) < IKCP_OVERHEAD) break;
 
-                offset += ikcp_decode32u(data, offset, ref conv_);
+                offset += Decode32U(data, offset, ref conv_);
 
                 if (conv != conv_) return -1;
 
-                offset += ikcp_decode8u(data, offset, ref cmd);
-                offset += ikcp_decode8u(data, offset, ref frg);
-                offset += ikcp_decode16u(data, offset, ref wnd);
-                offset += ikcp_decode32u(data, offset, ref ts);
-                offset += ikcp_decode32u(data, offset, ref sn);
-                offset += ikcp_decode32u(data, offset, ref una);
-                offset += ikcp_decode32u(data, offset, ref length);
+                offset += Decode8u(data, offset, ref cmd);
+                offset += Decode8u(data, offset, ref frg);
+                offset += Decode16U(data, offset, ref wnd);
+                offset += Decode32U(data, offset, ref ts);
+                offset += Decode32U(data, offset, ref sn);
+                offset += Decode32U(data, offset, ref una);
+                offset += Decode32U(data, offset, ref length);
 
                 if (size - (offset - index) < length) return -2;
 

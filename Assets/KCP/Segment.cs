@@ -55,14 +55,14 @@ namespace KcpProject
         {
             int offset_ = offset;
 
-            offset += KCP.ikcp_encode32u(ptr, offset, conv);
-            offset += KCP.ikcp_encode8u(ptr, offset, (byte)cmd);
-            offset += KCP.ikcp_encode8u(ptr, offset, (byte)frg);
-            offset += KCP.ikcp_encode16u(ptr, offset, (ushort)wnd);
-            offset += KCP.ikcp_encode32u(ptr, offset, ts);
-            offset += KCP.ikcp_encode32u(ptr, offset, sn);
-            offset += KCP.ikcp_encode32u(ptr, offset, una);
-            offset += KCP.ikcp_encode32u(ptr, offset, (uint)data.ReadableBytes);
+            offset += KCP.Encode32U(ptr, offset, conv);
+            offset += KCP.Encode8u(ptr, offset, (byte)cmd);
+            offset += KCP.Encode8u(ptr, offset, (byte)frg);
+            offset += KCP.Encode16U(ptr, offset, (ushort)wnd);
+            offset += KCP.Encode32U(ptr, offset, ts);
+            offset += KCP.Encode32U(ptr, offset, sn);
+            offset += KCP.Encode32U(ptr, offset, una);
+            offset += KCP.Encode32U(ptr, offset, (uint)data.ReadableBytes);
 
             return offset - offset_;
         }
