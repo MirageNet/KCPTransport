@@ -9,7 +9,7 @@ namespace KcpProject
         Socket mSocket = null;
         KCP mKCP = null;
 
-        ByteBuffer mRecvBuffer = ByteBuffer.Allocate(1024 * 32);
+        readonly ByteBuffer mRecvBuffer = ByteBuffer.Allocate(1024 * 32);
         uint mNextUpdateTime = 0;
 
         public bool IsConnected { get { return mSocket != null && mSocket.Connected; } }
@@ -24,7 +24,7 @@ namespace KcpProject
             IPHostEntry hostEntry = Dns.GetHostEntry(host);
             if (hostEntry.AddressList.Length == 0)
             {
-                throw new Exception("Unable to resolve host: " + host);
+                throw new ArgumentException("Unable to resolve host: " + host);
             }
             IPAddress endpoint = hostEntry.AddressList[0];
             mSocket = new Socket(endpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
