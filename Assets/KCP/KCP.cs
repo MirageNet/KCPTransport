@@ -129,7 +129,7 @@ namespace KcpProject
 
         byte[] buffer;
         int reserved;
-        Action<byte[], int> output; // buffer, size
+        readonly Action<byte[], int> output; // buffer, size
 
         // send windowd & recv window
         public uint SndWnd { get { return snd_wnd; } }
