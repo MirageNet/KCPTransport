@@ -641,9 +641,9 @@ namespace KcpProject
                         {
                             var seg = Segment.Get((int)length);
                             seg.conv = conv_;
-                            seg.cmd = (uint)cmd;
-                            seg.frg = (uint)frg;
-                            seg.wnd = (uint)wnd;
+                            seg.cmd = cmd;
+                            seg.frg = frg;
+                            seg.wnd = wnd;
                             seg.ts = ts;
                             seg.sn = sn;
                             seg.una = una;
@@ -1029,7 +1029,7 @@ namespace KcpProject
             if (_itimediff(current, ts_flush_) >= 0)
                 return current;
 
-            tm_flush_ = (int)_itimediff(ts_flush_, current);
+            tm_flush_ = _itimediff(ts_flush_, current);
 
             foreach (Segment seg in snd_buf)
             {
@@ -1037,12 +1037,12 @@ namespace KcpProject
                 if (diff <= 0)
                     return current;
                 if (diff < tm_packet)
-                    tm_packet = (int)diff;
+                    tm_packet = diff;
             }
 
-            minimal = (int)tm_packet;
+            minimal = tm_packet;
             if (tm_packet >= tm_flush_)
-                minimal = (int)tm_flush_;
+                minimal = tm_flush_;
             if (minimal >= interval)
                 minimal = (int)interval;
 
@@ -1052,7 +1052,7 @@ namespace KcpProject
         // change MTU size, default is 1400
         public int SetMtu(int mtu_)
         {
-            if (mtu_ < 50 || mtu_ < (int)IKCP_OVERHEAD)
+            if (mtu_ < 50 || mtu_ < IKCP_OVERHEAD)
                 return -1;
             if (reserved >= (int)(mtu - IKCP_OVERHEAD) || reserved < 0)
                 return -1;
