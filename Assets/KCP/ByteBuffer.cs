@@ -1,7 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace KcpProject
 {
@@ -1179,9 +1177,12 @@ namespace KcpProject
         /// </summary>
         public void Dispose()
         {
-            if (isPool) {
-                lock (pool) {
-                    if (pool.Count < poolMaxCount) {
+            if (isPool)
+            {
+                lock (pool)
+                {
+                    if (pool.Count < poolMaxCount)
+                    {
                         this.Clear();
                         pool.Add(this);
                         return;

@@ -43,7 +43,8 @@ namespace KcpProject
 
         public void Close()
         {
-            if (mSocket != null) {
+            if (mSocket != null)
+            {
                 mSocket.Close();
                 mSocket = null;
                 mRecvBuffer.Clear();
@@ -52,7 +53,8 @@ namespace KcpProject
 
         private void rawSend(byte[] data, int length)
         {
-            if (mSocket != null) {
+            if (mSocket != null)
+            {
                 mSocket.Send(data, length, SocketFlags.None);
             }
         }
@@ -63,17 +65,20 @@ namespace KcpProject
                 return -1;
 
             var waitsnd = mKCP.WaitSnd;
-            if (waitsnd < mKCP.SndWnd && waitsnd < mKCP.RmtWnd) {
+            if (waitsnd < mKCP.SndWnd && waitsnd < mKCP.RmtWnd)
+            {
 
                 var sendBytes = 0;
-                do {
+                do
+                {
                     var n = Math.Min((int)mKCP.Mss, length - sendBytes);
                     mKCP.Send(data, index + sendBytes, n);
                     sendBytes += n;
                 } while (sendBytes < length);
 
                 waitsnd = mKCP.WaitSnd;
-                if (waitsnd >= mKCP.SndWnd || waitsnd >= mKCP.RmtWnd || !WriteDelay) {
+                if (waitsnd >= mKCP.SndWnd || waitsnd >= mKCP.RmtWnd || !WriteDelay)
+                {
                     mKCP.Flush(false);
                 }
 
@@ -86,12 +91,14 @@ namespace KcpProject
         public int Recv(byte[] data, int index, int length)
         {
             // 上次剩下的部分
-            if (mRecvBuffer.ReadableBytes > 0) {
+            if (mRecvBuffer.ReadableBytes > 0)
+            {
                 var recvBytes = Math.Min(mRecvBuffer.ReadableBytes, length);
                 Buffer.BlockCopy(mRecvBuffer.RawBuffer, mRecvBuffer.ReaderIndex, data, index, recvBytes);
                 mRecvBuffer.ReaderIndex += recvBytes;
                 // 读完重置读写指针
-                if (mRecvBuffer.ReaderIndex == mRecvBuffer.WriterIndex) {
+                if (mRecvBuffer.ReaderIndex == mRecvBuffer.WriterIndex)
+                {
                     mRecvBuffer.Clear();
                 }
                 return recvBytes;
@@ -100,32 +107,39 @@ namespace KcpProject
             if (mSocket == null)
                 return -1;
 
-            if (!mSocket.Poll(0, SelectMode.SelectRead)) {
+            if (!mSocket.Poll(0, SelectMode.SelectRead))
+            {
                 return 0;
             }
 
             var rn = 0;
-            try {
+            try
+            {
                 rn = mSocket.Receive(mRecvBuffer.RawBuffer, mRecvBuffer.WriterIndex, mRecvBuffer.WritableBytes, SocketFlags.None);
-            } catch(Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 Console.WriteLine(ex);
                 rn = -1;
             }
 
-            if (rn <= 0) {
+            if (rn <= 0)
+            {
                 return rn;
             }
             mRecvBuffer.WriterIndex += rn;
 
             var inputN = mKCP.Input(mRecvBuffer.RawBuffer, mRecvBuffer.ReaderIndex, mRecvBuffer.ReadableBytes, true, AckNoDelay);
-            if (inputN < 0) {
+            if (inputN < 0)
+            {
                 mRecvBuffer.Clear();
                 return inputN;
             }
             mRecvBuffer.Clear();
 
             // 读完所有完整的消息
-            for (;;) {
+            for (; ; )
+            {
                 var size = mKCP.PeekSize();
                 if (size <= 0) break;
 
@@ -136,7 +150,8 @@ namespace KcpProject
             }
 
             // 有数据待接收
-            if (mRecvBuffer.ReadableBytes > 0) {
+            if (mRecvBuffer.ReadableBytes > 0)
+            {
                 return Recv(data, index, length);
             }
 

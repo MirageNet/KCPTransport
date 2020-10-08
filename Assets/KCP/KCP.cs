@@ -147,7 +147,8 @@ namespace KcpProject
             public static void Put(Segment seg)
             {
                 seg.reset();
-                lock (msSegmentPool) {
+                lock (msSegmentPool)
+                {
                     msSegmentPool.Push(seg);
                 }
             }
@@ -499,7 +500,8 @@ namespace KcpProject
             var count = 0;
             foreach (var seg in snd_buf)
             {
-                if (_itimediff(una, seg.sn) > 0) {
+                if (_itimediff(una, seg.sn) > 0)
+                {
                     count++;
                     Segment.Put(seg);
                 }
@@ -779,7 +781,7 @@ namespace KcpProject
             {
                 makeSpace(KCP.IKCP_OVERHEAD);
                 var ack = acklist[i];
-                if ( _itimediff(ack.sn, rcv_nxt) >=0 || acklist.Count - 1 == i)
+                if (_itimediff(ack.sn, rcv_nxt) >= 0 || acklist.Count - 1 == i)
                 {
                     seg.sn = ack.sn;
                     seg.ts = ack.ts;
@@ -918,7 +920,7 @@ namespace KcpProject
                     segment.resendts = current + segment.rto;
                     lostSegs++;
                 }
-                
+
                 if (needsend)
                 {
                     current = CurrentMS;
