@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace KcpProject
+namespace KCPTransport
 {
     class ByteBuffer : ICloneable
     {
