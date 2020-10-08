@@ -1016,9 +1016,7 @@ namespace KcpProject
             uint current = currentMS();
 
             uint ts_flush_ = ts_flush;
-            int tm_flush_ = 0x7fffffff;
             int tm_packet = 0x7fffffff;
-            int minimal = 0;
 
             if (updated == 0)
                 return current;
@@ -1029,7 +1027,7 @@ namespace KcpProject
             if (_itimediff(current, ts_flush_) >= 0)
                 return current;
 
-            tm_flush_ = _itimediff(ts_flush_, current);
+            int tm_flush_ = _itimediff(ts_flush_, current);
 
             foreach (Segment seg in snd_buf)
             {
@@ -1040,7 +1038,7 @@ namespace KcpProject
                     tm_packet = diff;
             }
 
-            minimal = tm_packet;
+            int minimal = tm_packet;
             if (tm_packet >= tm_flush_)
                 minimal = tm_flush_;
             if (minimal >= interval)
