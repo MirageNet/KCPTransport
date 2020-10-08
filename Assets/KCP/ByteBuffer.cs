@@ -19,19 +19,19 @@ namespace KcpProject
 
         ByteBuffer(int capacity)
         {
-            this.buf = new byte[capacity];
+            buf = new byte[capacity];
             this.capacity = capacity;
-            this.readIndex = 0;
-            this.writeIndex = 0;
+            readIndex = 0;
+            writeIndex = 0;
         }
 
         ByteBuffer(byte[] bytes)
         {
-            this.buf = new byte[bytes.Length];
+            buf = new byte[bytes.Length];
             Array.Copy(bytes, 0, buf, 0, buf.Length);
-            this.capacity = buf.Length;
-            this.readIndex = 0;
-            this.writeIndex = bytes.Length + 1;
+            capacity = buf.Length;
+            readIndex = 0;
+            writeIndex = bytes.Length + 1;
         }
 
         /// <summary>
@@ -511,7 +511,7 @@ namespace KcpProject
             int size = disstart + len;
             for (int i = disstart; i < size; i++)
             {
-                disbytes[i] = this.ReadByte();
+                disbytes[i] = ReadByte();
             }
         }
 
@@ -861,7 +861,7 @@ namespace KcpProject
         {
             get
             {
-                return this.capacity;
+                return capacity;
             }
         }
 
@@ -904,21 +904,21 @@ namespace KcpProject
         /// </summary>
         /// <param name="value">待写入的数据</param>
         /// <param name="type">待写入的数据类型</param>
-        private void WriteValue(int value, DataType type)
+        void WriteValue(int value, DataType type)
         {
             switch (type)
             {
                 case DataType.BYTE:
-                    this.WriteByte(value);
+                    WriteByte(value);
                     break;
                 case DataType.SHORT:
-                    this.WriteShort((short)value);
+                    WriteShort((short)value);
                     break;
                 case DataType.LONG:
-                    this.WriteLong((long)value);
+                    WriteLong((long)value);
                     break;
                 default:
-                    this.WriteInt(value);
+                    WriteInt(value);
                     break;
             }
         }
@@ -1053,7 +1053,7 @@ namespace KcpProject
         /// <param name="content"></param>
         public void WriteUTF(string content)
         {
-            this.WriteUTF8String(content, DataType.SHORT);
+            WriteUTF8String(content, DataType.SHORT);
         }
 
         /// <summary>
@@ -1064,7 +1064,7 @@ namespace KcpProject
         public string ReadUTF8String(int len)
         {
             byte[] bytes = new byte[len];
-            this.ReadBytes(bytes, 0, len);
+            ReadBytes(bytes, 0, len);
             return System.Text.Encoding.UTF8.GetString(bytes);
         }
 
@@ -1085,7 +1085,7 @@ namespace KcpProject
         /// <returns>UTF-8字符串</returns>
         public string ReadUTF()
         {
-            return this.ReadUTF8String(DataType.SHORT);
+            return ReadUTF8String(DataType.SHORT);
         }
 
         /// <summary>
@@ -1104,7 +1104,7 @@ namespace KcpProject
                 Array.Copy(buf, readIndex, newbytes, 0, newbytes.Length);
                 ByteBuffer buffer = new ByteBuffer(newbytes.Length);
                 buffer.WriteBytes(newbytes);
-                buffer.isPool = this.isPool;
+                buffer.isPool = isPool;
                 return buffer;
             }
             return new ByteBuffer(16);
@@ -1122,12 +1122,12 @@ namespace KcpProject
             }
             ByteBuffer newBuf = new ByteBuffer(buf)
             {
-                capacity = this.capacity,
-                readIndex = this.readIndex,
-                writeIndex = this.writeIndex,
-                markReadIndex = this.markReadIndex,
-                markWirteIndex = this.markWirteIndex,
-                isPool = this.isPool
+                capacity = capacity,
+                readIndex = readIndex,
+                writeIndex = writeIndex,
+                markReadIndex = markReadIndex,
+                markWirteIndex = markWirteIndex,
+                isPool = isPool
             };
             return newBuf;
         }
@@ -1138,9 +1138,9 @@ namespace KcpProject
         /// <param name="action"></param>
         public void ForEach(Action<byte> action)
         {
-            for (int i = 0; i < this.ReadableBytes; i++)
+            for (int i = 0; i < ReadableBytes; i++)
             {
-                action.Invoke(this.buf[i]);
+                action.Invoke(buf[i]);
             }
         }
 
@@ -1167,7 +1167,7 @@ namespace KcpProject
                 {
                     if (pool.Count < poolMaxCount)
                     {
-                        this.Clear();
+                        Clear();
                         pool.Add(this);
                         return;
                     }
