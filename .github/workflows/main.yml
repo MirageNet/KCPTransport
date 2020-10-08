@@ -77,7 +77,7 @@ jobs:
         uses: MirrorNG/unity-runner@3.0.0
         with:
           entrypoint: /sonar-scanner.sh
-          projectKey: MirrorNG_MirrorNG_KCPTransport
+          projectKey: MirrorNG_KCPTransport
           projectName: MirrorNG KCPTransport
           sonarOrganisation: mirrorng
           beginArguments: /d:sonar.verbose="true" /d:sonar.cs.nunit.reportsPaths=Tests/editmode-results.xml /d:sonar.cs.opencover.reportsPaths=Tests/workspace-opencov/EditMode/TestCoverageResults_0000.xml
