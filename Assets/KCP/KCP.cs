@@ -102,7 +102,7 @@ namespace KcpProject
         }
 
         // kcp members.
-        uint conv; uint mtu;
+        readonly uint conv; uint mtu;
         uint snd_una; uint snd_nxt; uint rcv_nxt;
         uint ssthresh;
         uint rx_rttval; uint rx_srtt;
