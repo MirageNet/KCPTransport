@@ -5,30 +5,18 @@ namespace KcpProject
 {
     class ByteBuffer : ICloneable
     {
-        //字节缓存区
         private byte[] buf;
-        //读取索引
         private int readIndex = 0;
-        //写入索引
         private int writeIndex = 0;
-        //读取索引标记
         private int markReadIndex = 0;
-        //写入索引标记
         private int markWirteIndex = 0;
-        //缓存区字节数组的长度
         private int capacity;
 
-        //对象池
         private static List<ByteBuffer> pool = new List<ByteBuffer>();
         private static int poolMaxCount = 200;
 
-        //此对象是否池化
         private bool isPool = false;
 
-        /// <summary>
-        /// 构造方法
-        /// </summary>
-        /// <param name="capacity">初始容量</param>
         private ByteBuffer(int capacity)
         {
             this.buf = new byte[capacity];
@@ -37,10 +25,6 @@ namespace KcpProject
             this.writeIndex = 0;
         }
 
-        /// <summary>
-        /// 构造方法
-        /// </summary>
-        /// <param name="bytes">初始字节数组</param>
         private ByteBuffer(byte[] bytes)
         {
             this.buf = new byte[bytes.Length];
