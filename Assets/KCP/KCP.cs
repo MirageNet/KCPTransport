@@ -633,7 +633,7 @@ namespace KcpProject
             return 0;
         }
 
-        ushort wnd_unused()
+        ushort WndUnused()
         {
             if (rcv_queue.Count < RcvWnd)
                 return (ushort)(RcvWnd - rcv_queue.Count);
@@ -646,7 +646,7 @@ namespace KcpProject
             var seg = Segment.Get(32);
             seg.conv = conv;
             seg.cmd = IKCP_CMD_ACK;
-            seg.wnd = wnd_unused();
+            seg.wnd = WndUnused();
             seg.una = rcv_nxt;
 
             int writeIndex = reserved;
