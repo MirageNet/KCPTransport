@@ -322,7 +322,7 @@ namespace KcpProject
         }
 
         // update ack.
-        void update_ack(int rtt)
+        void UpdateAck(int rtt)
         {
             // https://tools.ietf.org/html/rfc6298
             if (0 == rx_srtt)
@@ -353,7 +353,7 @@ namespace KcpProject
             rx_rto = Clamp((uint)rto, rx_minrto, IKCP_RTO_MAX);
         }
 
-        void shrink_buf()
+        void ShrinkBuf()
         {
             if (snd_buf.Count > 0)
                 snd_una = snd_buf[0].sn;
@@ -361,7 +361,7 @@ namespace KcpProject
                 snd_una = snd_nxt;
         }
 
-        void parse_ack(uint sn)
+        void ParseAck(uint sn)
         {
             if (_itimediff(sn, snd_una) < 0 || _itimediff(sn, snd_nxt) >= 0) return;
 
@@ -381,7 +381,7 @@ namespace KcpProject
             }
         }
 
-        void parse_fastack(uint sn, uint ts)
+        void ParseFastrack(uint sn, uint ts)
         {
             if (_itimediff(sn, snd_una) < 0 || _itimediff(sn, snd_nxt) >= 0)
                 return;
@@ -395,7 +395,7 @@ namespace KcpProject
             }
         }
 
-        void parse_una(uint una)
+        void ParseUna(uint una)
         {
             int count = 0;
             foreach (Segment seg in snd_buf)
@@ -413,12 +413,12 @@ namespace KcpProject
                 snd_buf.RemoveRange(0, count);
         }
 
-        void ack_push(uint sn, uint ts)
+        void AckPush(uint sn, uint ts)
         {
             acklist.Add(new ackItem { sn = sn, ts = ts });
         }
 
-        bool parse_data(Segment newseg)
+        bool ParseData(Segment newseg)
         {
             uint sn = newseg.sn;
             if (_itimediff(sn, rcv_nxt + RcvWnd) >= 0 || _itimediff(sn, rcv_nxt) < 0)
@@ -534,13 +534,13 @@ namespace KcpProject
                     RmtWnd = wnd;
                 }
 
-                parse_una(una);
-                shrink_buf();
+                ParseUna(una);
+                ShrinkBuf();
 
                 if (IKCP_CMD_ACK == cmd)
                 {
-                    parse_ack(sn);
-                    parse_fastack(sn, ts);
+                    ParseAck(sn);
+                    ParseFastrack(sn, ts);
                     flag |= 1;
                     latest = ts;
                 }
@@ -549,7 +549,7 @@ namespace KcpProject
                     bool repeat = true;
                     if (_itimediff(sn, rcv_nxt + RcvWnd) < 0)
                     {
-                        ack_push(sn, ts);
+                        AckPush(sn, ts);
                         if (_itimediff(sn, rcv_nxt) >= 0)
                         {
                             var seg = Segment.Get((int)length);
@@ -561,7 +561,7 @@ namespace KcpProject
                             seg.sn = sn;
                             seg.una = una;
                             seg.data.WriteBytes(data, offset, (int)length);
-                            repeat = parse_data(seg);
+                            repeat = ParseData(seg);
                         }
                     }
                 }
@@ -591,7 +591,7 @@ namespace KcpProject
                 uint current = currentMS();
                 if (_itimediff(current, latest) >= 0)
                 {
-                    update_ack(_itimediff(current, latest));
+                    UpdateAck(_itimediff(current, latest));
                 }
             }
 
