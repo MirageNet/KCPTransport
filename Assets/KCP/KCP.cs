@@ -955,13 +955,10 @@ namespace KcpProject
             if (reserved >= (int)(mtu - IKCP_OVERHEAD) || reserved < 0)
                 return -1;
 
-            byte[] buffer_ = new byte[mtu_];
-            if (null == buffer_)
-                return -2;
+            buffer = new byte[mtu_];
 
             mtu = (uint)mtu_;
             Mss = mtu - IKCP_OVERHEAD - (uint)reserved;
-            buffer = buffer_;
             return 0;
         }
 
