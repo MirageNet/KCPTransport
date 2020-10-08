@@ -85,12 +85,6 @@ namespace KcpProject
 
         private static readonly DateTime refTime = DateTime.Now;
 
-        private static uint currentMS()
-        {
-            TimeSpan ts = DateTime.Now.Subtract(refTime);
-            return (uint)ts.TotalMilliseconds;
-        }
-
         static uint Clamp(uint value, uint lower, uint upper)
         {
             return Math.Min(Math.Max(lower, value), upper);
@@ -138,10 +132,10 @@ namespace KcpProject
         public uint Mss { get; private set; }
 
         // get how many packet is waiting to be sent
-        public int WaitSnd { get { return snd_buf.Count + snd_queue.Count; } }
+        public int WaitSnd { get { return snd_buf.Count + snd_queue.Count; } } 
 
         // internal time.
-        public uint CurrentMS { get { return currentMS(); } }
+        public uint CurrentMS => (uint)DateTime.Now.Subtract(refTime).TotalMilliseconds;
 
         // create a new kcp control object, 'conv' must equal in two endpoint
         // from the same connection.
@@ -588,7 +582,7 @@ namespace KcpProject
             // ignore the FEC packet
             if (flag != 0 && regular)
             {
-                uint current = currentMS();
+                uint current = CurrentMS;
                 if (_itimediff(current, latest) >= 0)
                 {
                     UpdateAck(_itimediff(current, latest));
@@ -701,7 +695,7 @@ namespace KcpProject
             // probe window size (if remote window size equals zero)
             if (0 == RmtWnd)
             {
-                current = currentMS();
+                current = CurrentMS;
                 if (0 == probe_wait)
                 {
                     probe_wait = IKCP_PROBE_INIT;
@@ -775,7 +769,7 @@ namespace KcpProject
             if (fastresend <= 0) resent = 0xffffffff;
 
             // check for retransmissions
-            current = currentMS();
+            current = CurrentMS;
             ulong change = 0; ulong lostSegs = 0; ulong fastRetransSegs = 0; ulong earlyRetransSegs = 0;
             int minrto = (int)interval;
 
@@ -887,7 +881,7 @@ namespace KcpProject
         // 'current' - current timestamp in millisec.
         public void Update()
         {
-            uint current = currentMS();
+            uint current = CurrentMS;
 
             if (0 == updated)
             {
@@ -921,7 +915,7 @@ namespace KcpProject
         // or optimize ikcp_update when handling massive kcp connections)
         public uint Check()
         {
-            uint current = currentMS();
+            uint current = CurrentMS;
 
             uint ts_flush_ = ts_flush;
             int tm_packet = 0x7fffffff;
