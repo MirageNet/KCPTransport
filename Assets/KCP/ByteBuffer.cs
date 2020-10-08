@@ -35,14 +35,14 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 构建一个capacity长度的字节缓存区ByteBuffer对象
+        /// Construct a capacity length byte buffer ByteBuffer object
         /// </summary>
-        /// <param name="capacity">初始容量</param>
+        /// <param name="capacity">Initial capacity</param>
         /// <param name="fromPool">
-        /// true表示获取一个池化的ByteBuffer对象，池化的对象必须在调用Dispose后才会推入池中，此方法为线程安全的。
-        /// 当为true时，从池中获取的对象的实际capacity值。
+        /// true means to obtain a pooled ByteBuffer object, the pooled object must be pushed into the pool after calling Dispose, this method is thread-safe.
+        /// When true, the actual capacity value of the object obtained from the pool
         /// </param>
-        /// <returns>ByteBuffer对象</returns>
+        /// <returns>ByteBuffer object</returns>
         public static ByteBuffer Allocate(int capacity, bool fromPool = false)
         {
             if (!fromPool)
@@ -72,13 +72,13 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 构建一个以bytes为字节缓存区的ByteBuffer对象，一般不推荐使用
+        /// Construct a ByteBuffer object with bytes as the byte buffer, generally not recommended
         /// </summary>
-        /// <param name="bytes">初始字节数组</param>
+        /// <param name="bytes">Initial byte array</param>
         /// <param name="fromPool">
-        /// true表示获取一个池化的ByteBuffer对象，池化的对象必须在调用Dispose后才会推入池中，此方法为线程安全的。
+        /// true means to obtain a pooled ByteBuffer object, the pooled object must be pushed into the pool after calling Dispose, this method is thread-safe.
         /// </param>
-        /// <returns>ByteBuffer对象</returns>
+        /// <returns>ByteBuffer object</returns>
         public static ByteBuffer Allocate(byte[] bytes, bool fromPool = false)
         {
             if (!fromPool)
@@ -109,10 +109,10 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 根据value，确定大于此length的最近的2次方数，如length=7，则返回值为8；length=12，则返回16
+        /// According to the value, determine the nearest 2nd power greater than this length, such as length=7, the return value is 8; length=12, then 16
         /// </summary>
-        /// <param name="value">参考容量</param>
-        /// <returns>比参考容量大的最接近的2次方数</returns>
+        /// <param name="value">Reference capacity</param>
+        /// <returns>The nearest second power greater than the reference capacity</returns>
         int FixLength(int value)
         {
             if (value == 0)
@@ -137,10 +137,10 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 翻转字节数组，如果本地字节序列为高字节序列，则进行翻转以转换为低字节序列
+        /// Flip the byte array, if the local byte sequence is a high byte sequence, flip to convert to a low byte sequence
         /// </summary>
-        /// <param name="bytes">待转为高字节序的字节数组</param>
-        /// <returns>低字节序列的字节数组</returns>
+        /// <param name="bytes">Byte array to be converted to high-endian</param>
+        /// <returns>Byte array of low byte sequence</returns>
         byte[] Flip(byte[] bytes)
         {
             //if (BitConverter.IsLittleEndian)
@@ -151,20 +151,20 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 确定内部字节缓存数组的大小
+        /// Determine the size of the internal byte buffer array
         /// </summary>
-        /// <param name="currLen">当前容量</param>
-        /// <param name="futureLen">将来的容量</param>
-        /// <returns>当前缓冲区的最大容量</returns>
+        /// <param name="currLen">Current capacity</param>
+        /// <param name="futureLen">Future capacity</param>
+        /// <returns>The maximum capacity of the current buffer</returns>
         int FixSizeAndReset(int currLen, int futureLen)
         {
             if (futureLen > currLen)
             {
-                //以原大小的2次方数的两倍确定内部字节缓存区大小
+                //Determine the size of the internal byte buffer with twice the original size to the power of 2
                 int size = FixLength(currLen) * 2;
                 if (futureLen > size)
                 {
-                    //以将来的大小的2次方的两倍确定内部字节缓存区大小
+                    //Determine the size of the internal byte buffer by twice the power of the future size
                     size = FixLength(futureLen) * 2;
                 }
                 byte[] newbuf = new byte[size];
@@ -176,24 +176,24 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 确保有这么多字节可以用来写入
+        /// Make sure there are so many bytes available for writing
         /// </summary>
         /// <param name="minBytes"></param>
         public void EnsureWritableBytes(int minBytes)
         {
-            // 如果没有足够的空间进行写入了
+            // If there is not enough space for writing
             if (WritableBytes < minBytes)
             {
 
-                // 优先整理空间
+                // Prioritize space
                 if (ReaderIndex >= minBytes)
                 {
-                    // 整理出来可用空间
+                    // Organize the available space
                     TrimReadedBytes();
                 }
                 else
                 {
-                    // 空间不足时，重新分配内存
+                    // When space is insufficient, reallocate memory
                     FixSizeAndReset(buf.Length, buf.Length + minBytes);
                 }
             }
@@ -207,11 +207,11 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 将bytes字节数组从startIndex开始的length字节写入到此缓存区
+        /// Write length bytes starting from startIndex of bytes byte array to this buffer
         /// </summary>
-        /// <param name="bytes">待写入的字节数据</param>
-        /// <param name="startIndex">写入的开始位置</param>
-        /// <param name="length">写入的长度</param>
+        /// <param name="bytes">Byte data to be written</param>
+        /// <param name="startIndex">Start position of writing</param>
+        /// <param name="length">Length written</param>
         public void WriteBytes(byte[] bytes, int startIndex, int length)
         {
             if (length <= 0 || startIndex < 0) return;
@@ -224,28 +224,28 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 将字节数组中从0到length的元素写入缓存区
+        /// Write the elements from 0 to length in the byte array to the buffer
         /// </summary>
-        /// <param name="bytes">待写入的字节数据</param>
-        /// <param name="length">写入的长度</param>
+        /// <param name="bytes">Byte data to be written</param>
+        /// <param name="length">Length written</param>
         public void WriteBytes(byte[] bytes, int length)
         {
             WriteBytes(bytes, 0, length);
         }
 
         /// <summary>
-        /// 将字节数组全部写入缓存区
+        /// Write all byte arrays into the buffer
         /// </summary>
-        /// <param name="bytes">待写入的字节数据</param>
+        /// <param name="bytes">Byte data to be written</param>
         public void WriteBytes(byte[] bytes)
         {
             WriteBytes(bytes, bytes.Length);
         }
 
         /// <summary>
-        /// 将一个ByteBuffer的有效字节区写入此缓存区中
+        /// Write the effective byte area of ​​a ByteBuffer into this buffer area
         /// </summary>
-        /// <param name="buffer">待写入的字节缓存区</param>
+        /// <param name="buffer">Byte buffer area to be written</param>
         public void Write(ByteBuffer buffer)
         {
             if (buffer == null) return;
@@ -253,28 +253,16 @@ namespace KcpProject
             WriteBytes(buffer.ToArray());
         }
 
-        /// <summary>
-        /// 写入一个int16数据
-        /// </summary>
-        /// <param name="value">short数据</param>
         public void WriteShort(short value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个uint16数据
-        /// </summary>
-        /// <param name="value">ushort数据</param>
         public void WriteUshort(ushort value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个int32数据
-        /// </summary>
-        /// <param name="value">int数据</param>
         public void WriteInt(int value)
         {
             //byte[] array = new byte[4];
@@ -386,7 +374,7 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 获取从index索引处开始len长度的字节
+        /// Get the length of len bytes from the index
         /// </summary>
         /// <param name="index"></param>
         /// <param name="len"></param>
@@ -399,10 +387,10 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 从读取索引位置开始读取len长度的字节数组
+        /// Read the byte array of length len from the reading index position
         /// </summary>
-        /// <param name="len">待读取的字节长度</param>
-        /// <returns>字节数组</returns>
+        /// <param name="len">Length of bytes to be read</param>
+        /// <returns>Byte array</returns>
         byte[] Read(int len)
         {
             byte[] bytes = Get(readIndex, len);
@@ -461,11 +449,11 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 从读取索引位置开始读取len长度的字节到disbytes目标字节数组中
+        /// Read bytes of length len from the reading index position into the target byte array of disbytes
         /// </summary>
-        /// <param name="disbytes">读取的字节将存入此字节数组</param>
-        /// <param name="disstart">目标字节数组的写入索引</param>
-        /// <param name="len">读取的长度</param>
+        /// <param name="disbytes">The bytes read will be stored in this byte array</param>
+        /// <param name="disstart">The write index of the target byte array</param>
+        /// <param name="len">Read length</param>
         public void ReadBytes(byte[] disbytes, int disstart, int len)
         {
             int size = disstart + len;
@@ -602,7 +590,7 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 清除已读字节并重建缓存区
+        /// Clear the read bytes and rebuild the buffer area
         /// </summary>
         public void DiscardReadBytes()
         {
@@ -833,11 +821,11 @@ namespace KcpProject
         //}
 
         /// <summary>
-        /// 写入一个UTF-8字符串，UTF-8字符串无高低字节序问题
-        /// <para>写入缓冲区的结构为字符串字节长度（类型由lenType指定） + 字符串字节数组</para>
+        /// Write a UTF-8 string, UTF-8 string has no byte order problem
+        /// <para>The structure of the write buffer is string byte length (the type is specified by lenType) + string byte array</para>
         /// </summary>
-        /// <param name="content">待写入的字符串</param>
-        /// <param name="lenType">写入的字符串长度类型</param>
+        /// <param name="content">String to be written</param>
+        /// <param name="lenType">Type of string length written</param>
         public void WriteUTF8String(string content, DataType lenType)
         {
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(content);
@@ -891,7 +879,7 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 复制一个对象，具有与原对象相同的数据，不改变原对象的数据，不包括已读数据
+        /// Copy an object with the same data as the original object without changing the data of the original object, excluding the read data
         /// </summary>
         /// <returns></returns>
         public ByteBuffer Copy()
@@ -913,7 +901,8 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 深度复制，具有与原对象相同的数据，不改变原对象的数据，包括已读数据
+        /// Deep copy, with the same data as the original object,
+        /// without changing the data of the original object, including the read data
         /// </summary>
         /// <returns></returns>
         public object Clone()
