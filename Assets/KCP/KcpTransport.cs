@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -61,7 +62,9 @@ namespace Mirror.KCP
         /// <exception>If connection cannot be established</exception>
         public override Task<IConnection> ConnectAsync(Uri uri)
         {
-            throw new NotImplementedException();
+            KcpConnection client = new KcpConnection(null);
+
+            return client.Connect(uri.Host, (ushort) uri.Port);
         }
 
         /// <summary>
@@ -72,17 +75,27 @@ namespace Mirror.KCP
         /// <returns>The connection to a client</returns>
         public override async Task<IConnection> AcceptAsync()
         {
-            while (_server != null)
+            try
             {
-                while (_server.QueuedConnections.TryDequeue(out IPEndPoint client))
+                Socket handler = await _server.AcceptAsync();
+
+                if (handler is null)
                 {
-                    return new KcpConnection();
+                    Debug.Log("Something went wrong.");
+                    return null;
                 }
 
-                await Task.Delay(1);
-            }
+                KcpConnection connection = new KcpConnection(handler);
 
-            return null;
+                Debug.Log($"Accepted connection from {handler.RemoteEndPoint}");
+
+                return connection;
+            }
+            catch (ObjectDisposedException)
+            {
+                // expected,  the connection was closed
+                return null;
+            }
         }
 
         /// <summary>

@@ -1,11 +1,10 @@
 #region Statements
 
 using System;
-using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using KcpProject;
+using UnityEngine;
 
 #endregion
 
@@ -13,64 +12,64 @@ namespace Mirror.KCP
 {
     public sealed class Server
     {
-        private KcpProject.KCP _kcp;
-        private ByteBuffer _receiveBuffer = ByteBuffer.Allocate(1024 * 32);
         private Socket _socket;
-        internal ConcurrentQueue<IPEndPoint> QueuedConnections = new ConcurrentQueue<IPEndPoint>();
-        private uint mNextUpdateTime = 0;
 
         #region Class Specific
 
         /// <summary>
-        ///     Start up the server and start listening for connections.
+        ///     Start up the server.
         /// </summary>
         public async Task Start(string address, ushort port)
         {
-            IPHostEntry hostEntry = await Dns.GetHostEntryAsync(address);
-
-            if (hostEntry.AddressList.Length == 0)
+            try
             {
-                throw new Exception("Unable to resolve host: " + address);
-            }
+                Debug.Log("Starting up server.");
 
-            IPAddress endPoint = hostEntry.AddressList[0];
+                IPHostEntry hostEntry = await Dns.GetHostEntryAsync(address);
 
-            _socket = new Socket(endPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-
-            await _socket.ConnectAsync(endPoint, port);
-
-            _kcp = new KcpProject.KCP((uint)new Random().Next(1, int.MaxValue), Send);
-            _kcp.NoDelay(1, 10, 2, 1);
-            _kcp.SetStreamMode(true);
-            _receiveBuffer.Clear();
-
-            _ = Task.Run(Tick);
-        }
-
-        private void Tick()
-        {
-            while (_socket != null)
-            {
-                if (0 != mNextUpdateTime && _kcp.CurrentMS < mNextUpdateTime)
+                if (hostEntry.AddressList.Length == 0)
                 {
-                    continue;
+                    throw new Exception("Unable to resolve host: " + address);
                 }
 
-                _kcp.Update();
-                mNextUpdateTime = _kcp.Check();
+                _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
+
+                if (true)
+                    _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.NoDelay, true);
+
+                IPHostEntry host = await Dns.GetHostEntryAsync(address);
+                IPAddress ipAddress = IPAddress.Parse(host.AddressList[1].ToString());
+                IPEndPoint localEndPoint = new IPEndPoint(ipAddress, port);
+
+                _socket.Bind(localEndPoint);
+                _socket.Listen(1);
+
+                Debug.Log("Server started finished starting up.");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(new Exception($"Server failed to startup. Exception: {ex}"));
             }
         }
 
         /// <summary>
-        /// 
+        ///     Start accepting a connection that has come in.
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="dataLength"></param>
-        private void Send(byte[] data, int dataLength)
+        /// <returns></returns>
+        public async Task<Socket> AcceptAsync()
         {
-            _socket?.Send(data, dataLength, SocketFlags.None);
-        }
+            while (_socket != null)
+            {
+                Debug.Log("Too many users connected to server. Please wait until server has room.");
 
+                await Task.Delay(5000);
+            }
+
+            Debug.Log("Server is now listening for incoming connections");
+
+            return await _socket.AcceptAsync();
+        }
         /// <summary>
         ///     Shutdown the server and stop listening for connections.
         /// </summary>
@@ -78,7 +77,6 @@ namespace Mirror.KCP
         {
             _socket?.Close();
             _socket = null;
-            _receiveBuffer.Clear();
         }
 
         #endregion
