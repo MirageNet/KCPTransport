@@ -276,46 +276,26 @@ namespace KcpProject
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个uint32数据
-        /// </summary>
-        /// <param name="value">uint数据</param>
         public void WriteUint(uint value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个int64数据
-        /// </summary>
-        /// <param name="value">long数据</param>
         public void WriteLong(long value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个uint64数据
-        /// </summary>
-        /// <param name="value">ulong数据</param>
         public void WriteUlong(ulong value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个float数据
-        /// </summary>
-        /// <param name="value">float数据</param>
         public void WriteFloat(float value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个byte数据
-        /// </summary>
-        /// <param name="value">byte数据</param>
         public void WriteByte(byte value)
         {
             int afterLen = writeIndex + 1;
@@ -325,47 +305,27 @@ namespace KcpProject
             writeIndex = afterLen;
         }
 
-        /// <summary>
-        /// 写入一个byte数据
-        /// </summary>
-        /// <param name="value">byte数据</param>
         public void WriteByte(int value)
         {
             byte b = (byte)value;
             WriteByte(b);
         }
 
-        /// <summary>
-        /// 写入一个double类型数据
-        /// </summary>
-        /// <param name="value">double数据</param>
         public void WriteDouble(double value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个字符
-        /// </summary>
-        /// <param name="value"></param>
         public void WriteChar(char value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个布尔型数据
-        /// </summary>
-        /// <param name="value"></param>
         public void WriteBoolean(bool value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 读取一个字节
-        /// </summary>
-        /// <returns>字节数据</returns>
         public byte ReadByte()
         {
             byte b = buf[readIndex];
@@ -707,11 +667,6 @@ namespace KcpProject
             LONG = 4
         }
 
-        /// <summary>
-        /// 写入一个数据
-        /// </summary>
-        /// <param name="value">待写入的数据</param>
-        /// <param name="type">待写入的数据类型</param>
         void WriteValue(int value, DataType type)
         {
             switch (type)
@@ -731,11 +686,6 @@ namespace KcpProject
             }
         }
 
-        /// <summary>
-        /// 读取一个值，值类型根据type决定，int或short或byte
-        /// </summary>
-        /// <param name="type">值类型</param>
-        /// <returns>int数据</returns>
         int ReadValue(DataType type)
         {
             switch (type)
