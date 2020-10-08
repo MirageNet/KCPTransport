@@ -782,18 +782,18 @@ namespace KcpProject
             for (int k = 0; k < snd_buf.Count; k++)
             {
                 Segment segment = snd_buf[k];
-                bool needsend = false;
+                bool needSend = false;
                 if (segment.acked == 1)
                     continue;
                 if (segment.xmit == 0)  // initial transmit
                 {
-                    needsend = true;
+                    needSend = true;
                     segment.rto = rx_rto;
                     segment.resendts = current + segment.rto;
                 }
                 else if (segment.fastack >= resent) // fast retransmit
                 {
-                    needsend = true;
+                    needSend = true;
                     segment.fastack = 0;
                     segment.rto = rx_rto;
                     segment.resendts = current + segment.rto;
@@ -802,7 +802,7 @@ namespace KcpProject
                 }
                 else if (segment.fastack > 0 && newSegsCount == 0) // early retransmit
                 {
-                    needsend = true;
+                    needSend = true;
                     segment.fastack = 0;
                     segment.rto = rx_rto;
                     segment.resendts = current + segment.rto;
@@ -811,7 +811,7 @@ namespace KcpProject
                 }
                 else if (_itimediff(current, segment.resendts) >= 0) // RTO
                 {
-                    needsend = true;
+                    needSend = true;
                     if (nodelay == 0)
                         segment.rto += rx_rto;
                     else
@@ -821,7 +821,7 @@ namespace KcpProject
                     lostSegs++;
                 }
 
-                if (needsend)
+                if (needSend)
                 {
                     current = CurrentMS;
                     segment.xmit++;
