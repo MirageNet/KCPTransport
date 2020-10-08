@@ -38,7 +38,7 @@ namespace KcpProject
 
         public static void Put(Segment seg)
         {
-            seg.reset();
+            seg.Reset();
             lock (msSegmentPool)
             {
                 msSegmentPool.Push(seg);
@@ -51,7 +51,7 @@ namespace KcpProject
         }
 
         // encode a segment into buffer
-        internal int encode(byte[] ptr, int offset)
+        internal int Encode(byte[] ptr, int offset)
         {
             int offset_ = offset;
 
@@ -67,7 +67,7 @@ namespace KcpProject
             return offset - offset_;
         }
 
-        internal void reset()
+        internal void Reset()
         {
             conv = 0;
             cmd = 0;

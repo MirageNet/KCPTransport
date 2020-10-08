@@ -685,7 +685,7 @@ namespace KcpProject
                 {
                     seg.sn = ack.sn;
                     seg.ts = ack.ts;
-                    writeIndex += seg.encode(buffer, writeIndex);
+                    writeIndex += seg.Encode(buffer, writeIndex);
                 }
             }
             acklist.Clear();
@@ -732,14 +732,14 @@ namespace KcpProject
             {
                 seg.cmd = IKCP_CMD_WASK;
                 makeSpace(IKCP_OVERHEAD);
-                writeIndex += seg.encode(buffer, writeIndex);
+                writeIndex += seg.Encode(buffer, writeIndex);
             }
 
             if ((probe & IKCP_ASK_TELL) != 0)
             {
                 seg.cmd = IKCP_CMD_WINS;
                 makeSpace(IKCP_OVERHEAD);
-                writeIndex += seg.encode(buffer, writeIndex);
+                writeIndex += seg.Encode(buffer, writeIndex);
             }
 
             probe = 0;
@@ -831,7 +831,7 @@ namespace KcpProject
 
                     int need = IKCP_OVERHEAD + segment.data.ReadableBytes;
                     makeSpace(need);
-                    writeIndex += segment.encode(buffer, writeIndex);
+                    writeIndex += segment.Encode(buffer, writeIndex);
                     Buffer.BlockCopy(segment.data.RawBuffer, segment.data.ReaderIndex, buffer, writeIndex, segment.data.ReadableBytes);
                     writeIndex += segment.data.ReadableBytes;
                 }
