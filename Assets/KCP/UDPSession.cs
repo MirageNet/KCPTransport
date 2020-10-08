@@ -10,7 +10,7 @@ namespace KcpProject
         private KCP mKCP = null;
 
         private ByteBuffer mRecvBuffer = ByteBuffer.Allocate(1024 * 32);
-        private UInt32 mNextUpdateTime = 0;
+        private uint mNextUpdateTime = 0;
 
         public bool IsConnected { get { return mSocket != null && mSocket.Connected; } }
         public bool WriteDelay { get; set; }
@@ -26,7 +26,7 @@ namespace KcpProject
             {
                 throw new Exception("Unable to resolve host: " + host);
             }
-            var endpoint = hostEntry.AddressList[0];
+            IPAddress endpoint = hostEntry.AddressList[0];
             mSocket = new Socket(endpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             mSocket.Connect(endpoint, port);
             RemoteAddress = (IPEndPoint)mSocket.RemoteEndPoint;
@@ -64,14 +64,13 @@ namespace KcpProject
             if (mSocket == null)
                 return -1;
 
-            var waitsnd = mKCP.WaitSnd;
+            int waitsnd = mKCP.WaitSnd;
             if (waitsnd < mKCP.SndWnd && waitsnd < mKCP.RmtWnd)
             {
-
-                var sendBytes = 0;
+                int sendBytes = 0;
                 do
                 {
-                    var n = Math.Min((int)mKCP.Mss, length - sendBytes);
+                    int n = Math.Min((int)mKCP.Mss, length - sendBytes);
                     mKCP.Send(data, index + sendBytes, n);
                     sendBytes += n;
                 } while (sendBytes < length);
@@ -93,7 +92,7 @@ namespace KcpProject
             // 上次剩下的部分
             if (mRecvBuffer.ReadableBytes > 0)
             {
-                var recvBytes = Math.Min(mRecvBuffer.ReadableBytes, length);
+                int recvBytes = Math.Min(mRecvBuffer.ReadableBytes, length);
                 Buffer.BlockCopy(mRecvBuffer.RawBuffer, mRecvBuffer.ReaderIndex, data, index, recvBytes);
                 mRecvBuffer.ReaderIndex += recvBytes;
                 // 读完重置读写指针
@@ -112,7 +111,7 @@ namespace KcpProject
                 return 0;
             }
 
-            var rn = 0;
+            int rn;
             try
             {
                 rn = mSocket.Receive(mRecvBuffer.RawBuffer, mRecvBuffer.WriterIndex, mRecvBuffer.WritableBytes, SocketFlags.None);
@@ -129,7 +128,7 @@ namespace KcpProject
             }
             mRecvBuffer.WriterIndex += rn;
 
-            var inputN = mKCP.Input(mRecvBuffer.RawBuffer, mRecvBuffer.ReaderIndex, mRecvBuffer.ReadableBytes, true, AckNoDelay);
+            int inputN = mKCP.Input(mRecvBuffer.RawBuffer, mRecvBuffer.ReaderIndex, mRecvBuffer.ReadableBytes, true, AckNoDelay);
             if (inputN < 0)
             {
                 mRecvBuffer.Clear();
@@ -140,12 +139,12 @@ namespace KcpProject
             // 读完所有完整的消息
             for (; ; )
             {
-                var size = mKCP.PeekSize();
+                int size = mKCP.PeekSize();
                 if (size <= 0) break;
 
                 mRecvBuffer.EnsureWritableBytes(size);
 
-                var n = mKCP.Recv(mRecvBuffer.RawBuffer, mRecvBuffer.WriterIndex, size);
+                int n = mKCP.Recv(mRecvBuffer.RawBuffer, mRecvBuffer.WriterIndex, size);
                 if (n > 0) mRecvBuffer.WriterIndex += n;
             }
 

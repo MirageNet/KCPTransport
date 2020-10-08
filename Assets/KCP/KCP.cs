@@ -44,7 +44,7 @@ namespace KcpProject
         }
 
         /* encode 16 bits unsigned int (lsb) */
-        public static int ikcp_encode16u(byte[] p, int offset, UInt16 w)
+        public static int ikcp_encode16u(byte[] p, int offset, ushort w)
         {
             p[0 + offset] = (byte)(w >> 0);
             p[1 + offset] = (byte)(w >> 8);
@@ -52,17 +52,17 @@ namespace KcpProject
         }
 
         /* decode 16 bits unsigned int (lsb) */
-        public static int ikcp_decode16u(byte[] p, int offset, ref UInt16 c)
+        public static int ikcp_decode16u(byte[] p, int offset, ref ushort c)
         {
-            UInt16 result = 0;
-            result |= (UInt16)p[0 + offset];
-            result |= (UInt16)(p[1 + offset] << 8);
+            ushort result = 0;
+            result |= p[0 + offset];
+            result |= (ushort)(p[1 + offset] << 8);
             c = result;
             return 2;
         }
 
         /* encode 32 bits unsigned int (lsb) */
-        public static int ikcp_encode32u(byte[] p, int offset, UInt32 l)
+        public static int ikcp_encode32u(byte[] p, int offset, uint l)
         {
             p[0 + offset] = (byte)(l >> 0);
             p[1 + offset] = (byte)(l >> 8);
@@ -72,60 +72,60 @@ namespace KcpProject
         }
 
         /* decode 32 bits unsigned int (lsb) */
-        public static int ikcp_decode32u(byte[] p, int offset, ref UInt32 c)
+        public static int ikcp_decode32u(byte[] p, int offset, ref uint c)
         {
-            UInt32 result = 0;
-            result |= (UInt32)p[0 + offset];
-            result |= (UInt32)(p[1 + offset] << 8);
-            result |= (UInt32)(p[2 + offset] << 16);
-            result |= (UInt32)(p[3 + offset] << 24);
+            uint result = 0;
+            result |= p[0 + offset];
+            result |= (uint)(p[1 + offset] << 8);
+            result |= (uint)(p[2 + offset] << 16);
+            result |= (uint)(p[3 + offset] << 24);
             c = result;
             return 4;
         }
 
-        static UInt32 _imin_(UInt32 a, UInt32 b)
+        static uint _imin_(uint a, uint b)
         {
             return a <= b ? a : b;
         }
 
         private static DateTime refTime = DateTime.Now;
 
-        private static UInt32 currentMS()
+        private static uint currentMS()
         {
-            var ts = DateTime.Now.Subtract(refTime);
-            return (UInt32)ts.TotalMilliseconds;
+            TimeSpan ts = DateTime.Now.Subtract(refTime);
+            return (uint)ts.TotalMilliseconds;
         }
 
-        static UInt32 _imax_(UInt32 a, UInt32 b)
+        static uint _imax_(uint a, uint b)
         {
             return a >= b ? a : b;
         }
 
-        static UInt32 _ibound_(UInt32 lower, UInt32 middle, UInt32 upper)
+        static uint _ibound_(uint lower, uint middle, uint upper)
         {
             return _imin_(_imax_(lower, middle), upper);
         }
 
-        static Int32 _itimediff(UInt32 later, UInt32 earlier)
+        static int _itimediff(uint later, uint earlier)
         {
-            return ((Int32)(later - earlier));
+            return ((int)(later - earlier));
         }
 
         // KCP Segment Definition
         internal class Segment
         {
-            internal UInt32 conv = 0;
-            internal UInt32 cmd = 0;
-            internal UInt32 frg = 0;
-            internal UInt32 wnd = 0;
-            internal UInt32 ts = 0;
-            internal UInt32 sn = 0;
-            internal UInt32 una = 0;
-            internal UInt32 rto = 0;
-            internal UInt32 xmit = 0;
-            internal UInt32 resendts = 0;
-            internal UInt32 fastack = 0;
-            internal UInt32 acked = 0;
+            internal uint conv = 0;
+            internal uint cmd = 0;
+            internal uint frg = 0;
+            internal uint wnd = 0;
+            internal uint ts = 0;
+            internal uint sn = 0;
+            internal uint una = 0;
+            internal uint rto = 0;
+            internal uint xmit = 0;
+            internal uint resendts = 0;
+            internal uint fastack = 0;
+            internal uint acked = 0;
             internal ByteBuffer data;
 
             private static Stack<Segment> msSegmentPool = new Stack<Segment>(32);
@@ -136,7 +136,7 @@ namespace KcpProject
                 {
                     if (msSegmentPool.Count > 0)
                     {
-                        var seg = msSegmentPool.Pop();
+                        Segment seg = msSegmentPool.Pop();
                         seg.data = ByteBuffer.Allocate(size, true);
                         return seg;
                     }
@@ -161,17 +161,16 @@ namespace KcpProject
             // encode a segment into buffer
             internal int encode(byte[] ptr, int offset)
             {
-
-                var offset_ = offset;
+                int offset_ = offset;
 
                 offset += ikcp_encode32u(ptr, offset, conv);
                 offset += ikcp_encode8u(ptr, offset, (byte)cmd);
                 offset += ikcp_encode8u(ptr, offset, (byte)frg);
-                offset += ikcp_encode16u(ptr, offset, (UInt16)wnd);
+                offset += ikcp_encode16u(ptr, offset, (ushort)wnd);
                 offset += ikcp_encode32u(ptr, offset, ts);
                 offset += ikcp_encode32u(ptr, offset, sn);
                 offset += ikcp_encode32u(ptr, offset, una);
-                offset += ikcp_encode32u(ptr, offset, (UInt32)data.ReadableBytes);
+                offset += ikcp_encode32u(ptr, offset, (uint)data.ReadableBytes);
 
                 return offset - offset_;
             }
@@ -199,24 +198,24 @@ namespace KcpProject
 
         internal struct ackItem
         {
-            internal UInt32 sn;
-            internal UInt32 ts;
+            internal uint sn;
+            internal uint ts;
         }
 
         // kcp members.
-        UInt32 conv; UInt32 mtu; UInt32 mss; UInt32 state;
-        UInt32 snd_una; UInt32 snd_nxt; UInt32 rcv_nxt;
-        UInt32 ts_recent; UInt32 ts_lastack; UInt32 ssthresh;
-        UInt32 rx_rttval; UInt32 rx_srtt;
-        UInt32 rx_rto; UInt32 rx_minrto;
-        UInt32 snd_wnd; UInt32 rcv_wnd; UInt32 rmt_wnd; UInt32 cwnd; UInt32 probe;
-        UInt32 interval; UInt32 ts_flush;
-        UInt32 nodelay; UInt32 updated;
-        UInt32 ts_probe; UInt32 probe_wait;
-        UInt32 dead_link; UInt32 incr;
+        uint conv; uint mtu; uint mss; uint state;
+        uint snd_una; uint snd_nxt; uint rcv_nxt;
+        uint ts_recent; uint ts_lastack; uint ssthresh;
+        uint rx_rttval; uint rx_srtt;
+        uint rx_rto; uint rx_minrto;
+        uint snd_wnd; uint rcv_wnd; uint rmt_wnd; uint cwnd; uint probe;
+        uint interval; uint ts_flush;
+        uint nodelay; uint updated;
+        uint ts_probe; uint probe_wait;
+        uint dead_link; uint incr;
 
-        Int32 fastresend;
-        Int32 nocwnd; Int32 stream;
+        int fastresend;
+        int nocwnd; int stream;
 
         List<Segment> snd_queue = new List<Segment>(16);
         List<Segment> rcv_queue = new List<Segment>(16);
@@ -226,24 +225,24 @@ namespace KcpProject
         List<ackItem> acklist = new List<ackItem>(16);
 
         byte[] buffer;
-        Int32 reserved;
+        int reserved;
         Action<byte[], int> output; // buffer, size
 
         // send windowd & recv window
-        public UInt32 SndWnd { get { return snd_wnd; } }
-        public UInt32 RcvWnd { get { return rcv_wnd; } }
-        public UInt32 RmtWnd { get { return rmt_wnd; } }
-        public UInt32 Mss { get { return mss; } }
+        public uint SndWnd { get { return snd_wnd; } }
+        public uint RcvWnd { get { return rcv_wnd; } }
+        public uint RmtWnd { get { return rmt_wnd; } }
+        public uint Mss { get { return mss; } }
 
         // get how many packet is waiting to be sent
         public int WaitSnd { get { return snd_buf.Count + snd_queue.Count; } }
 
         // internal time.
-        public UInt32 CurrentMS { get { return currentMS(); } }
+        public uint CurrentMS { get { return currentMS(); } }
 
         // create a new kcp control object, 'conv' must equal in two endpoint
         // from the same connection.
-        public KCP(UInt32 conv_, Action<byte[], int> output_)
+        public KCP(uint conv_, Action<byte[], int> output_)
         {
             conv = conv_;
             snd_wnd = IKCP_WND_SND;
@@ -267,7 +266,7 @@ namespace KcpProject
 
             if (0 == rcv_queue.Count) return -1;
 
-            var seq = rcv_queue[0];
+            Segment seq = rcv_queue[0];
 
             if (0 == seq.frg) return seq.data.ReadableBytes;
 
@@ -275,7 +274,7 @@ namespace KcpProject
 
             int length = 0;
 
-            foreach (var item in rcv_queue)
+            foreach (Segment item in rcv_queue)
             {
                 length += item.data.ReadableBytes;
                 if (0 == item.frg)
@@ -300,28 +299,28 @@ namespace KcpProject
         // Return -2 if len(buffer) is smaller than kcp.PeekSize().
         public int Recv(byte[] buffer, int index, int length)
         {
-            var peekSize = PeekSize();
+            int peekSize = PeekSize();
             if (peekSize < 0)
                 return -1;
 
             if (peekSize > length)
                 return -2;
 
-            var fast_recover = false;
+            bool fast_recover = false;
             if (rcv_queue.Count >= rcv_wnd)
                 fast_recover = true;
 
             // merge fragment.
-            var count = 0;
-            var n = index;
-            foreach (var seg in rcv_queue)
+            int count = 0;
+            int n = index;
+            foreach (Segment seg in rcv_queue)
             {
                 // copy fragment data into buffer.
                 Buffer.BlockCopy(seg.data.RawBuffer, seg.data.ReaderIndex, buffer, n, seg.data.ReadableBytes);
                 n += seg.data.ReadableBytes;
 
                 count++;
-                var fragment = seg.frg;
+                uint fragment = seg.frg;
                 Segment.Put(seg);
                 if (0 == fragment) break;
             }
@@ -333,7 +332,7 @@ namespace KcpProject
 
             // move available data from rcv_buf -> rcv_queue
             count = 0;
-            foreach (var seg in rcv_buf)
+            foreach (Segment seg in rcv_buf)
             {
                 if (seg.sn == rcv_nxt && rcv_queue.Count + count < rcv_wnd)
                 {
@@ -351,7 +350,6 @@ namespace KcpProject
             {
                 rcv_buf.RemoveRange(0, count);
             }
-
 
             // fast recover
             if (rcv_queue.Count < rcv_wnd && fast_recover)
@@ -376,14 +374,14 @@ namespace KcpProject
 
             if (stream != 0)
             {
-                var n = snd_queue.Count;
+                int n = snd_queue.Count;
                 if (n > 0)
                 {
-                    var seg = snd_queue[n - 1];
+                    Segment seg = snd_queue[n - 1];
                     if (seg.data.ReadableBytes < mss)
                     {
-                        var capacity = (int)(mss - seg.data.ReadableBytes);
-                        var writen = Math.Min(capacity, length);
+                        int capacity = (int)(mss - seg.data.ReadableBytes);
+                        int writen = Math.Min(capacity, length);
                         seg.data.WriteBytes(buffer, index, writen);
                         index += writen;
                         length -= writen;
@@ -394,7 +392,7 @@ namespace KcpProject
             if (length == 0)
                 return 0;
 
-            var count = 0;
+            int count;
             if (length <= mss)
                 count = 1;
             else
@@ -404,11 +402,11 @@ namespace KcpProject
 
             if (count == 0) count = 1;
 
-            for (var i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
-                var size = Math.Min(length, (int)mss);
+                int size = Math.Min(length, (int)mss);
 
-                var seg = Segment.Get(size);
+                Segment seg = Segment.Get(size);
                 seg.data.WriteBytes(buffer, index, size);
                 index += size;
                 length -= size;
@@ -421,18 +419,18 @@ namespace KcpProject
         }
 
         // update ack.
-        void update_ack(Int32 rtt)
+        void update_ack(int rtt)
         {
             // https://tools.ietf.org/html/rfc6298
             if (0 == rx_srtt)
             {
-                rx_srtt = (UInt32)rtt;
-                rx_rttval = (UInt32)rtt >> 1;
+                rx_srtt = (uint)rtt;
+                rx_rttval = (uint)rtt >> 1;
             }
             else
             {
-                Int32 delta = (Int32)((UInt32)rtt - rx_srtt);
-                rx_srtt += (UInt32)(delta >> 3);
+                int delta = (int)((uint)rtt - rx_srtt);
+                rx_srtt += (uint)(delta >> 3);
                 if (0 > delta) delta = -delta;
 
                 if (rtt < rx_srtt - rx_rttval)
@@ -448,8 +446,8 @@ namespace KcpProject
                 }
             }
 
-            var rto = (int)(rx_srtt + _imax_(interval, rx_rttval << 2));
-            rx_rto = _ibound_(rx_minrto, (UInt32)rto, IKCP_RTO_MAX);
+            int rto = (int)(rx_srtt + _imax_(interval, rx_rttval << 2));
+            rx_rto = _ibound_(rx_minrto, (uint)rto, IKCP_RTO_MAX);
         }
 
         void shrink_buf()
@@ -460,12 +458,11 @@ namespace KcpProject
                 snd_una = snd_nxt;
         }
 
-        void parse_ack(UInt32 sn)
+        void parse_ack(uint sn)
         {
-
             if (_itimediff(sn, snd_una) < 0 || _itimediff(sn, snd_nxt) >= 0) return;
 
-            foreach (var seg in snd_buf)
+            foreach (Segment seg in snd_buf)
             {
                 if (sn == seg.sn)
                 {
@@ -481,12 +478,12 @@ namespace KcpProject
             }
         }
 
-        void parse_fastack(UInt32 sn, UInt32 ts)
+        void parse_fastack(uint sn, uint ts)
         {
             if (_itimediff(sn, snd_una) < 0 || _itimediff(sn, snd_nxt) >= 0)
                 return;
 
-            foreach (var seg in snd_buf)
+            foreach (Segment seg in snd_buf)
             {
                 if (_itimediff(sn, seg.sn) < 0)
                     break;
@@ -495,10 +492,10 @@ namespace KcpProject
             }
         }
 
-        void parse_una(UInt32 una)
+        void parse_una(uint una)
         {
-            var count = 0;
-            foreach (var seg in snd_buf)
+            int count = 0;
+            foreach (Segment seg in snd_buf)
             {
                 if (_itimediff(una, seg.sn) > 0)
                 {
@@ -513,23 +510,23 @@ namespace KcpProject
                 snd_buf.RemoveRange(0, count);
         }
 
-        void ack_push(UInt32 sn, UInt32 ts)
+        void ack_push(uint sn, uint ts)
         {
             acklist.Add(new ackItem { sn = sn, ts = ts });
         }
 
         bool parse_data(Segment newseg)
         {
-            var sn = newseg.sn;
+            uint sn = newseg.sn;
             if (_itimediff(sn, rcv_nxt + rcv_wnd) >= 0 || _itimediff(sn, rcv_nxt) < 0)
                 return true;
 
-            var n = rcv_buf.Count - 1;
-            var insert_idx = 0;
-            var repeat = false;
-            for (var i = n; i >= 0; i--)
+            int n = rcv_buf.Count - 1;
+            int insert_idx = 0;
+            bool repeat = false;
+            for (int i = n; i >= 0; i--)
             {
-                var seg = rcv_buf[i];
+                Segment seg = rcv_buf[i];
                 if (seg.sn == sn)
                 {
                     repeat = true;
@@ -552,8 +549,8 @@ namespace KcpProject
             }
 
             // move available data from rcv_buf -> rcv_queue
-            var count = 0;
-            foreach (var seg in rcv_buf)
+            int count = 0;
+            foreach (Segment seg in rcv_buf)
             {
                 if (seg.sn == rcv_nxt && rcv_queue.Count + count < rcv_wnd)
                 {
@@ -568,7 +565,7 @@ namespace KcpProject
 
             if (count > 0)
             {
-                for (var i = 0; i < count; i++)
+                for (int i = 0; i < count; i++)
                     rcv_queue.Add(rcv_buf[i]);
                 rcv_buf.RemoveRange(0, count);
             }
@@ -581,23 +578,23 @@ namespace KcpProject
         // 'ackNoDelay' will trigger immediate ACK, but surely it will not be efficient in bandwidth
         public int Input(byte[] data, int index, int size, bool regular, bool ackNoDelay)
         {
-            var s_una = snd_una;
+            uint s_una = snd_una;
             if (size < IKCP_OVERHEAD) return -1;
 
-            Int32 offset = index;
-            UInt32 latest = 0;
+            int offset = index;
+            uint latest = 0;
             int flag = 0;
-            UInt64 inSegs = 0;
+            ulong inSegs = 0;
 
             while (true)
             {
-                UInt32 ts = 0;
-                UInt32 sn = 0;
-                UInt32 length = 0;
-                UInt32 una = 0;
-                UInt32 conv_ = 0;
+                uint ts = 0;
+                uint sn = 0;
+                uint length = 0;
+                uint una = 0;
+                uint conv_ = 0;
 
-                UInt16 wnd = 0;
+                ushort wnd = 0;
                 byte cmd = 0;
                 byte frg = 0;
 
@@ -646,7 +643,7 @@ namespace KcpProject
                 }
                 else if (IKCP_CMD_PUSH == cmd)
                 {
-                    var repeat = true;
+                    bool repeat = true;
                     if (_itimediff(sn, rcv_nxt + rcv_wnd) < 0)
                     {
                         ack_push(sn, ts);
@@ -654,9 +651,9 @@ namespace KcpProject
                         {
                             var seg = Segment.Get((int)length);
                             seg.conv = conv_;
-                            seg.cmd = (UInt32)cmd;
-                            seg.frg = (UInt32)frg;
-                            seg.wnd = (UInt32)wnd;
+                            seg.cmd = (uint)cmd;
+                            seg.frg = (uint)frg;
+                            seg.wnd = (uint)wnd;
                             seg.ts = ts;
                             seg.sn = sn;
                             seg.una = una;
@@ -688,7 +685,7 @@ namespace KcpProject
             // ignore the FEC packet
             if (flag != 0 && regular)
             {
-                var current = currentMS();
+                uint current = currentMS();
                 if (_itimediff(current, latest) >= 0)
                 {
                     update_ack(_itimediff(current, latest));
@@ -702,7 +699,7 @@ namespace KcpProject
                 {
                     if (cwnd < rmt_wnd)
                     {
-                        var _mss = mss;
+                        uint _mss = mss;
                         if (cwnd < ssthresh)
                         {
                             cwnd++;
@@ -741,23 +738,23 @@ namespace KcpProject
             return 0;
         }
 
-        UInt16 wnd_unused()
+        ushort wnd_unused()
         {
             if (rcv_queue.Count < rcv_wnd)
-                return (UInt16)(rcv_wnd - rcv_queue.Count);
+                return (ushort)(rcv_wnd - rcv_queue.Count);
             return 0;
         }
 
         // flush pending data
-        public UInt32 Flush(bool ackOnly)
+        public uint Flush(bool ackOnly)
         {
             var seg = Segment.Get(32);
             seg.conv = conv;
             seg.cmd = IKCP_CMD_ACK;
-            seg.wnd = (UInt32)wnd_unused();
+            seg.wnd = wnd_unused();
             seg.una = rcv_nxt;
 
-            var writeIndex = reserved;
+            int writeIndex = reserved;
 
             Action<int> makeSpace = (space) =>
             {
@@ -777,10 +774,10 @@ namespace KcpProject
             };
 
             // flush acknowledges
-            for (var i = 0; i < acklist.Count; i++)
+            for (int i = 0; i < acklist.Count; i++)
             {
                 makeSpace(KCP.IKCP_OVERHEAD);
-                var ack = acklist[i];
+                ackItem ack = acklist[i];
                 if (_itimediff(ack.sn, rcv_nxt) >= 0 || acklist.Count - 1 == i)
                 {
                     seg.sn = ack.sn;
@@ -845,18 +842,18 @@ namespace KcpProject
             probe = 0;
 
             // calculate window size
-            var cwnd_ = _imin_(snd_wnd, rmt_wnd);
+            uint cwnd_ = _imin_(snd_wnd, rmt_wnd);
             if (0 == nocwnd)
                 cwnd_ = _imin_(cwnd, cwnd_);
 
             // sliding window, controlled by snd_nxt && sna_una+cwnd
-            var newSegsCount = 0;
-            for (var k = 0; k < snd_queue.Count; k++)
+            int newSegsCount = 0;
+            for (int k = 0; k < snd_queue.Count; k++)
             {
                 if (_itimediff(snd_nxt, snd_una + cwnd_) >= 0)
                     break;
 
-                var newseg = snd_queue[k];
+                Segment newseg = snd_queue[k];
                 newseg.conv = conv;
                 newseg.cmd = IKCP_CMD_PUSH;
                 newseg.sn = snd_nxt;
@@ -871,18 +868,18 @@ namespace KcpProject
             }
 
             // calculate resent
-            var resent = (UInt32)fastresend;
+            uint resent = (uint)fastresend;
             if (fastresend <= 0) resent = 0xffffffff;
 
             // check for retransmissions
             current = currentMS();
-            UInt64 change = 0; UInt64 lostSegs = 0; UInt64 fastRetransSegs = 0; UInt64 earlyRetransSegs = 0;
-            var minrto = (Int32)interval;
+            ulong change = 0; ulong lostSegs = 0; ulong fastRetransSegs = 0; ulong earlyRetransSegs = 0;
+            int minrto = (int)interval;
 
-            for (var k = 0; k < snd_buf.Count; k++)
+            for (int k = 0; k < snd_buf.Count; k++)
             {
-                var segment = snd_buf[k];
-                var needsend = false;
+                Segment segment = snd_buf[k];
+                bool needsend = false;
                 if (segment.acked == 1)
                     continue;
                 if (segment.xmit == 0)  // initial transmit
@@ -929,7 +926,7 @@ namespace KcpProject
                     segment.wnd = seg.wnd;
                     segment.una = seg.una;
 
-                    var need = IKCP_OVERHEAD + segment.data.ReadableBytes;
+                    int need = IKCP_OVERHEAD + segment.data.ReadableBytes;
                     makeSpace(need);
                     writeIndex += segment.encode(buffer, writeIndex);
                     Buffer.BlockCopy(segment.data.RawBuffer, segment.data.ReaderIndex, buffer, writeIndex, segment.data.ReadableBytes);
@@ -942,7 +939,7 @@ namespace KcpProject
                 }
 
                 // get the nearest rto
-                var _rto = _itimediff(segment.resendts, current);
+                int _rto = _itimediff(segment.resendts, current);
                 if (_rto > 0 && _rto < minrto)
                 {
                     minrto = _rto;
@@ -959,7 +956,7 @@ namespace KcpProject
                 // rate halving, https://tools.ietf.org/html/rfc6937
                 if (change > 0)
                 {
-                    var inflght = snd_nxt - snd_una;
+                    uint inflght = snd_nxt - snd_una;
                     ssthresh = inflght / 2;
                     if (ssthresh < IKCP_THRESH_MIN)
                         ssthresh = IKCP_THRESH_MIN;
@@ -984,7 +981,7 @@ namespace KcpProject
                 }
             }
 
-            return (UInt32)minrto;
+            return (uint)minrto;
         }
 
         // update state (call it repeatedly, every 10ms-100ms), or you can ask
@@ -992,7 +989,7 @@ namespace KcpProject
         // 'current' - current timestamp in millisec.
         public void Update()
         {
-            var current = currentMS();
+            uint current = currentMS();
 
             if (0 == updated)
             {
@@ -1000,7 +997,7 @@ namespace KcpProject
                 ts_flush = current;
             }
 
-            var slap = _itimediff(current, ts_flush);
+            int slap = _itimediff(current, ts_flush);
 
             if (slap >= 10000 || slap < -10000)
             {
@@ -1024,14 +1021,14 @@ namespace KcpProject
         // Important to reduce unnacessary ikcp_update invoking. use it to
         // schedule ikcp_update (eg. implementing an epoll-like mechanism,
         // or optimize ikcp_update when handling massive kcp connections)
-        public UInt32 Check()
+        public uint Check()
         {
-            var current = currentMS();
+            uint current = currentMS();
 
-            var ts_flush_ = ts_flush;
-            var tm_flush_ = 0x7fffffff;
-            var tm_packet = 0x7fffffff;
-            var minimal = 0;
+            uint ts_flush_ = ts_flush;
+            int tm_flush_ = 0x7fffffff;
+            int tm_packet = 0x7fffffff;
+            int minimal = 0;
 
             if (updated == 0)
                 return current;
@@ -1044,9 +1041,9 @@ namespace KcpProject
 
             tm_flush_ = (int)_itimediff(ts_flush_, current);
 
-            foreach (var seg in snd_buf)
+            foreach (Segment seg in snd_buf)
             {
-                var diff = _itimediff(seg.resendts, current);
+                int diff = _itimediff(seg.resendts, current);
                 if (diff <= 0)
                     return current;
                 if (diff < tm_packet)
@@ -1059,23 +1056,23 @@ namespace KcpProject
             if (minimal >= interval)
                 minimal = (int)interval;
 
-            return current + (UInt32)minimal;
+            return current + (uint)minimal;
         }
 
         // change MTU size, default is 1400
-        public int SetMtu(Int32 mtu_)
+        public int SetMtu(int mtu_)
         {
-            if (mtu_ < 50 || mtu_ < (Int32)IKCP_OVERHEAD)
+            if (mtu_ < 50 || mtu_ < (int)IKCP_OVERHEAD)
                 return -1;
             if (reserved >= (int)(mtu - IKCP_OVERHEAD) || reserved < 0)
                 return -1;
 
-            var buffer_ = new byte[mtu_];
+            byte[] buffer_ = new byte[mtu_];
             if (null == buffer_)
                 return -2;
 
-            mtu = (UInt32)mtu_;
-            mss = mtu - IKCP_OVERHEAD - (UInt32)reserved;
+            mtu = (uint)mtu_;
+            mss = mtu - IKCP_OVERHEAD - (uint)reserved;
             buffer = buffer_;
             return 0;
         }
@@ -1090,7 +1087,7 @@ namespace KcpProject
 
             if (nodelay_ > 0)
             {
-                nodelay = (UInt32)nodelay_;
+                nodelay = (uint)nodelay_;
                 if (nodelay_ != 0)
                     rx_minrto = IKCP_RTO_NDL;
                 else
@@ -1103,7 +1100,7 @@ namespace KcpProject
                     interval_ = 5000;
                 else if (interval_ < 10)
                     interval_ = 10;
-                interval = (UInt32)interval_;
+                interval = (uint)interval_;
             }
 
             if (resend_ >= 0)
@@ -1119,10 +1116,10 @@ namespace KcpProject
         public int WndSize(int sndwnd, int rcvwnd)
         {
             if (sndwnd > 0)
-                snd_wnd = (UInt32)sndwnd;
+                snd_wnd = (uint)sndwnd;
 
             if (rcvwnd > 0)
-                rcv_wnd = (UInt32)rcvwnd;
+                rcv_wnd = (uint)rcvwnd;
             return 0;
         }
 
