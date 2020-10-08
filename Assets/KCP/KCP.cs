@@ -91,9 +91,9 @@ namespace KcpProject
             return (uint)ts.TotalMilliseconds;
         }
 
-        static uint _ibound_(uint lower, uint middle, uint upper)
+        static uint Clamp(uint value, uint lower, uint upper)
         {
-            return Math.Min(Math.Max(lower, middle), upper);
+            return Math.Min(Math.Max(lower, value), upper);
         }
 
         static int _itimediff(uint later, uint earlier)
@@ -350,7 +350,7 @@ namespace KcpProject
             }
 
             int rto = (int)(rx_srtt + Math.Max(interval, rx_rttval << 2));
-            rx_rto = _ibound_(rx_minrto, (uint)rto, IKCP_RTO_MAX);
+            rx_rto = Clamp((uint)rto, rx_minrto, IKCP_RTO_MAX);
         }
 
         void shrink_buf()
