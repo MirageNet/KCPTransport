@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace KcpProject
 {
-
     public class KCP
     {
         public const int IKCP_RTO_NDL = 30;  // no delay min rto
