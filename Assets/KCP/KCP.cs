@@ -193,9 +193,9 @@ namespace KcpProject
         }
 
         // kcp members.
-        uint conv; uint mtu; uint mss; uint state;
+        uint conv; uint mtu; uint mss;
         uint snd_una; uint snd_nxt; uint rcv_nxt;
-        uint ts_recent; uint ts_lastack; uint ssthresh;
+        uint ssthresh;
         uint rx_rttval; uint rx_srtt;
         uint rx_rto; uint rx_minrto;
         uint snd_wnd; uint rcv_wnd; uint rmt_wnd; uint cwnd; uint probe;
@@ -921,11 +921,6 @@ namespace KcpProject
                     writeIndex += segment.encode(buffer, writeIndex);
                     Buffer.BlockCopy(segment.data.RawBuffer, segment.data.ReaderIndex, buffer, writeIndex, segment.data.ReadableBytes);
                     writeIndex += segment.data.ReadableBytes;
-
-                    if (segment.xmit >= dead_link)
-                    {
-                        state = 0xFFFFFFFF;
-                    }
                 }
 
                 // get the nearest rto
