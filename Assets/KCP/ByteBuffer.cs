@@ -410,91 +410,51 @@ namespace KcpProject
             return bytes;
         }
 
-        /// <summary>
-        /// 读取一个uint16数据
-        /// </summary>
-        /// <returns>ushort数据</returns>
         public ushort ReadUshort()
         {
             return BitConverter.ToUInt16(Read(2), 0);
         }
 
-        /// <summary>
-        /// 读取一个int16数据
-        /// </summary>
-        /// <returns>short数据</returns>
         public short ReadShort()
         {
             return BitConverter.ToInt16(Read(2), 0);
         }
 
-        /// <summary>
-        /// 读取一个uint32数据
-        /// </summary>
-        /// <returns>uint数据</returns>
         public uint ReadUint()
         {
             return BitConverter.ToUInt32(Read(4), 0);
         }
 
-        /// <summary>
-        /// 读取一个int32数据
-        /// </summary>
-        /// <returns>int数据</returns>
         public int ReadInt()
         {
             return BitConverter.ToInt32(Read(4), 0);
         }
 
-        /// <summary>
-        /// 读取一个uint64数据
-        /// </summary>
-        /// <returns>ulong数据</returns>
         public ulong ReadUlong()
         {
             return BitConverter.ToUInt64(Read(8), 0);
         }
 
-        /// <summary>
-        /// 读取一个long数据
-        /// </summary>
-        /// <returns>long数据</returns>
         public long ReadLong()
         {
             return BitConverter.ToInt64(Read(8), 0);
         }
 
-        /// <summary>
-        /// 读取一个float数据
-        /// </summary>
-        /// <returns>float数据</returns>
         public float ReadFloat()
         {
             return BitConverter.ToSingle(Read(4), 0);
         }
 
-        /// <summary>
-        /// 读取一个double数据
-        /// </summary>
-        /// <returns>double数据</returns>
         public double ReadDouble()
         {
             return BitConverter.ToDouble(Read(8), 0);
         }
 
-        /// <summary>
-        /// 读取一个字符
-        /// </summary>
-        /// <returns></returns>
         public char ReadChar()
         {
             return BitConverter.ToChar(Read(2), 0);
         }
 
-        /// <summary>
-        /// 读取布尔型数据
-        /// </summary>
-        /// <returns></returns>
         public bool ReadBoolean()
         {
             return BitConverter.ToBoolean(Read(1), 0);
@@ -531,210 +491,111 @@ namespace KcpProject
             return buffer;
         }
 
-        /// <summary>
-        /// 获取一个字节
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
         public byte GetByte(int index)
         {
             return buf[index];
         }
 
-        /// <summary>
-        /// 获取一个字节
-        /// </summary>
-        /// <returns></returns>
         public byte GetByte()
         {
             return GetByte(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个双精度浮点数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public double GetDouble(int index)
         {
             return BitConverter.ToDouble(Get(index, 8), 0);
         }
 
-        /// <summary>
-        /// 获取一个双精度浮点数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public double GetDouble()
         {
             return GetDouble(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个浮点数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public float GetFloat(int index)
         {
             return BitConverter.ToSingle(Get(index, 4), 0);
         }
 
-        /// <summary>
-        /// 获取一个浮点数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public float GetFloat()
         {
             return GetFloat(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个长整形数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public long GetLong(int index)
         {
             return BitConverter.ToInt64(Get(index, 8), 0);
         }
 
-        /// <summary>
-        /// 获取一个长整形数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public long GetLong()
         {
             return GetLong(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个长整形数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public ulong GetUlong(int index)
         {
             return BitConverter.ToUInt64(Get(index, 8), 0);
         }
 
-        /// <summary>
-        /// 获取一个长整形数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public ulong GetUlong()
         {
             return GetUlong(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个整形数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public int GetInt(int index)
         {
             return BitConverter.ToInt32(Get(index, 4), 0);
         }
 
-        /// <summary>
-        /// 获取一个整形数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public int GetInt()
         {
             return GetInt(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个整形数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public uint GetUint(int index)
         {
             return BitConverter.ToUInt32(Get(index, 4), 0);
         }
 
-        /// <summary>
-        /// 获取一个整形数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public uint GetUint()
         {
             return GetUint(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个短整形数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public int GetShort(int index)
         {
             return BitConverter.ToInt16(Get(index, 2), 0);
         }
 
-        /// <summary>
-        /// 获取一个短整形数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public int GetShort()
         {
             return GetShort(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个短整形数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public int GetUshort(int index)
         {
             return BitConverter.ToUInt16(Get(index, 2), 0);
         }
 
-        /// <summary>
-        /// 获取一个短整形数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public int GetUshort()
         {
             return GetUshort(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个char数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public char GetChar(int index)
         {
             return BitConverter.ToChar(Get(index, 2), 0);
         }
 
-        /// <summary>
-        /// 获取一个char数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public char GetChar()
         {
             return GetChar(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个布尔数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public bool GetBoolean(int index)
         {
             return BitConverter.ToBoolean(Get(index, 1), 0);
         }
 
-        /// <summary>
-        /// 获取一个布尔数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public bool GetBoolean()
         {
             return GetBoolean(readIndex);
@@ -765,9 +626,6 @@ namespace KcpProject
             readIndex = 0;
         }
 
-        /// <summary>
-        /// 设置/获取读指针位置
-        /// </summary>
         public int ReaderIndex
         {
             get
@@ -781,9 +639,6 @@ namespace KcpProject
             }
         }
 
-        /// <summary>
-        /// 设置/获取写指针位置
-        /// </summary>
         public int WriterIndex
         {
             get
@@ -797,42 +652,26 @@ namespace KcpProject
             }
         }
 
-        /// <summary>
-        /// 标记读取的索引位置
-        /// </summary>
         public void MarkReaderIndex()
         {
             markReadIndex = readIndex;
         }
 
-        /// <summary>
-        /// 标记写入的索引位置
-        /// </summary>
         public void MarkWriterIndex()
         {
             markWirteIndex = writeIndex;
         }
 
-        /// <summary>
-        /// 将读取的索引位置重置为标记的读取索引位置
-        /// </summary>
         public void ResetReaderIndex()
         {
             readIndex = markReadIndex;
         }
 
-        /// <summary>
-        /// 将写入的索引位置重置为标记的写入索引位置
-        /// </summary>
         public void ResetWriterIndex()
         {
             writeIndex = markWirteIndex;
         }
 
-        /// <summary>
-        /// 可读的有效字节数
-        /// </summary>
-        /// <returns>可读的字节数</returns>
         public int ReadableBytes
         {
             get
@@ -841,10 +680,6 @@ namespace KcpProject
             }
         }
 
-        /// <summary>
-        /// 可写的剩余空间数
-        /// </summary>
-        /// <returns>可写的字节数</returns>
         public int WritableBytes
         {
             get
@@ -853,10 +688,6 @@ namespace KcpProject
             }
         }
 
-        /// <summary>
-        /// 获取缓存区容量大小
-        /// </summary>
-        /// <returns>缓存区容量</returns>
         public int Capacity
         {
             get
@@ -873,10 +704,6 @@ namespace KcpProject
             }
         }
 
-        /// <summary>
-        /// 获取可读的字节数组
-        /// </summary>
-        /// <returns>字节数据</returns>
         public byte[] ToArray()
         {
             byte[] bytes = new byte[writeIndex - readIndex];
@@ -884,18 +711,11 @@ namespace KcpProject
             return bytes;
         }
 
-        /// <summary>
-        /// 简单的数据类型
-        /// </summary>
         public enum DataType
         {
-            //byte类型
             BYTE = 1,
-            //short类型
             SHORT = 2,
-            //int类型
             INT = 3,
-            //long类型
             LONG = 4
         }
 
@@ -1047,20 +867,11 @@ namespace KcpProject
             }
         }
 
-        /// <summary>
-        /// 写入以short表示的字符串字节长度和字符串字节数据
-        /// </summary>
-        /// <param name="content"></param>
         public void WriteUTF(string content)
         {
             WriteUTF8String(content, DataType.SHORT);
         }
 
-        /// <summary>
-        /// 读取一个UTF-8字符串，UTF-8字符串无高低字节序问题
-        /// </summary>
-        /// <param name="len">需读取的字符串长度</param>
-        /// <returns>字符串</returns>
         public string ReadUTF8String(int len)
         {
             byte[] bytes = new byte[len];
@@ -1068,21 +879,12 @@ namespace KcpProject
             return System.Text.Encoding.UTF8.GetString(bytes);
         }
 
-        /// <summary>
-        /// 读取一个UTF-8字符串，UTF-8字符串无高低字节序问题
-        /// </summary>
-        /// <param name="lenType">字符串长度类型</param>
-        /// <returns>字符串</returns>
         public string ReadUTF8String(DataType lenType)
         {
             int len = ReadValue(lenType);
             return ReadUTF8String(len);
         }
 
-        /// <summary>
-        /// 读取short类型的字符串字节长度，然后根据此长度读取对应数量的字节数据后转为字符串
-        /// </summary>
-        /// <returns>UTF-8字符串</returns>
         public string ReadUTF()
         {
             return ReadUTF8String(DataType.SHORT);
@@ -1132,10 +934,6 @@ namespace KcpProject
             return newBuf;
         }
 
-        /// <summary>
-        /// 遍历所有的字节数据
-        /// </summary>
-        /// <param name="action"></param>
         public void ForEach(Action<byte> action)
         {
             for (int i = 0; i < ReadableBytes; i++)
@@ -1144,9 +942,6 @@ namespace KcpProject
             }
         }
 
-        /// <summary>
-        /// 清空此对象，但保留字节缓存数组（空数组）
-        /// </summary>
         public void Clear()
         {
             readIndex = 0;
@@ -1156,9 +951,6 @@ namespace KcpProject
             capacity = buf.Length;
         }
 
-        /// <summary>
-        /// 释放对象，清除字节缓存数组，如果此对象为可池化，那么调用此方法将会把此对象推入到池中等待下次调用
-        /// </summary>
         public void Dispose()
         {
             if (isPool)
