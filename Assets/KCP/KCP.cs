@@ -91,14 +91,9 @@ namespace KcpProject
             return (uint)ts.TotalMilliseconds;
         }
 
-        static uint _imax_(uint a, uint b)
-        {
-            return a >= b ? a : b;
-        }
-
         static uint _ibound_(uint lower, uint middle, uint upper)
         {
-            return Math.Min(_imax_(lower, middle), upper);
+            return Math.Min(Math.Max(lower, middle), upper);
         }
 
         static int _itimediff(uint later, uint earlier)
@@ -441,7 +436,7 @@ namespace KcpProject
                 }
             }
 
-            int rto = (int)(rx_srtt + _imax_(interval, rx_rttval << 2));
+            int rto = (int)(rx_srtt + Math.Max(interval, rx_rttval << 2));
             rx_rto = _ibound_(rx_minrto, (uint)rto, IKCP_RTO_MAX);
         }
 
