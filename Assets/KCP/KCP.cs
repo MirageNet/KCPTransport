@@ -101,91 +101,6 @@ namespace KcpProject
             return ((int)(later - earlier));
         }
 
-        // KCP Segment Definition
-        internal class Segment
-        {
-            internal uint conv = 0;
-            internal uint cmd = 0;
-            internal uint frg = 0;
-            internal uint wnd = 0;
-            internal uint ts = 0;
-            internal uint sn = 0;
-            internal uint una = 0;
-            internal uint rto = 0;
-            internal uint xmit = 0;
-            internal uint resendts = 0;
-            internal uint fastack = 0;
-            internal uint acked = 0;
-            internal ByteBuffer data;
-
-            private static Stack<Segment> msSegmentPool = new Stack<Segment>(32);
-
-            public static Segment Get(int size)
-            {
-                lock (msSegmentPool)
-                {
-                    if (msSegmentPool.Count > 0)
-                    {
-                        Segment seg = msSegmentPool.Pop();
-                        seg.data = ByteBuffer.Allocate(size, true);
-                        return seg;
-                    }
-                }
-                return new Segment(size);
-            }
-
-            public static void Put(Segment seg)
-            {
-                seg.reset();
-                lock (msSegmentPool)
-                {
-                    msSegmentPool.Push(seg);
-                }
-            }
-
-            private Segment(int size)
-            {
-                data = ByteBuffer.Allocate(size, true);
-            }
-
-            // encode a segment into buffer
-            internal int encode(byte[] ptr, int offset)
-            {
-                int offset_ = offset;
-
-                offset += ikcp_encode32u(ptr, offset, conv);
-                offset += ikcp_encode8u(ptr, offset, (byte)cmd);
-                offset += ikcp_encode8u(ptr, offset, (byte)frg);
-                offset += ikcp_encode16u(ptr, offset, (ushort)wnd);
-                offset += ikcp_encode32u(ptr, offset, ts);
-                offset += ikcp_encode32u(ptr, offset, sn);
-                offset += ikcp_encode32u(ptr, offset, una);
-                offset += ikcp_encode32u(ptr, offset, (uint)data.ReadableBytes);
-
-                return offset - offset_;
-            }
-
-            internal void reset()
-            {
-                conv = 0;
-                cmd = 0;
-                frg = 0;
-                wnd = 0;
-                ts = 0;
-                sn = 0;
-                una = 0;
-                rto = 0;
-                xmit = 0;
-                resendts = 0;
-                fastack = 0;
-                acked = 0;
-
-                data.Clear();
-                data.Dispose();
-                data = null;
-            }
-        }
-
         internal struct ackItem
         {
             internal uint sn;
@@ -206,13 +121,11 @@ namespace KcpProject
 
         int fastresend;
         int nocwnd; int stream;
-
-        List<Segment> snd_queue = new List<Segment>(16);
-        List<Segment> rcv_queue = new List<Segment>(16);
-        List<Segment> snd_buf = new List<Segment>(16);
-        List<Segment> rcv_buf = new List<Segment>(16);
-
-        List<ackItem> acklist = new List<ackItem>(16);
+        readonly List<Segment> snd_queue = new List<Segment>(16);
+        readonly List<Segment> rcv_queue = new List<Segment>(16);
+        readonly List<Segment> snd_buf = new List<Segment>(16);
+        readonly List<Segment> rcv_buf = new List<Segment>(16);
+        readonly List<ackItem> acklist = new List<ackItem>(16);
 
         byte[] buffer;
         int reserved;
