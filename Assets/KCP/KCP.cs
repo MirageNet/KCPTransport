@@ -83,7 +83,7 @@ namespace KcpProject
             return 4;
         }
 
-        private static DateTime refTime = DateTime.Now;
+        private static readonly DateTime refTime = DateTime.Now;
 
         private static uint currentMS()
         {
