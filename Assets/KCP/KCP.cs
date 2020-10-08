@@ -90,7 +90,7 @@ namespace KcpProject
             return Math.Min(Math.Max(lower, value), upper);
         }
 
-        static int _itimediff(uint later, uint earlier)
+        static int TimeDiff(uint later, uint earlier)
         {
             return ((int)(later - earlier));
         }
@@ -357,7 +357,7 @@ namespace KcpProject
 
         void ParseAck(uint sn)
         {
-            if (_itimediff(sn, snd_una) < 0 || _itimediff(sn, snd_nxt) >= 0) return;
+            if (sn < snd_una || sn >= snd_nxt) return;
 
             foreach (Segment seg in snd_buf)
             {
@@ -370,21 +370,21 @@ namespace KcpProject
                     seg.acked = 1;
                     break;
                 }
-                if (_itimediff(sn, seg.sn) < 0)
+                if (sn < seg.sn)
                     break;
             }
         }
 
         void ParseFastrack(uint sn, uint ts)
         {
-            if (_itimediff(sn, snd_una) < 0 || _itimediff(sn, snd_nxt) >= 0)
+            if (sn < snd_una || sn >= snd_nxt)
                 return;
 
             foreach (Segment seg in snd_buf)
             {
-                if (_itimediff(sn, seg.sn) < 0)
+                if (sn < seg.sn)
                     break;
-                else if (sn != seg.sn && _itimediff(seg.ts, ts) <= 0)
+                else if (sn != seg.sn && seg.ts <= ts)
                     seg.fastack++;
             }
         }
@@ -394,7 +394,7 @@ namespace KcpProject
             int count = 0;
             foreach (Segment seg in snd_buf)
             {
-                if (_itimediff(una, seg.sn) > 0)
+                if (una >seg.sn)
                 {
                     count++;
                     Segment.Put(seg);
@@ -415,7 +415,7 @@ namespace KcpProject
         bool ParseData(Segment newseg)
         {
             uint sn = newseg.sn;
-            if (_itimediff(sn, rcv_nxt + RcvWnd) >= 0 || _itimediff(sn, rcv_nxt) < 0)
+            if (sn >= rcv_nxt + RcvWnd || sn < rcv_nxt)
                 return true;
 
             int n = rcv_buf.Count - 1;
@@ -430,7 +430,7 @@ namespace KcpProject
                     break;
                 }
 
-                if (_itimediff(sn, seg.sn) > 0)
+                if (sn > seg.sn)
                 {
                     insert_idx = i + 1;
                     break;
@@ -541,10 +541,10 @@ namespace KcpProject
                 else if (IKCP_CMD_PUSH == cmd)
                 {
                     bool repeat = true;
-                    if (_itimediff(sn, rcv_nxt + RcvWnd) < 0)
+                    if (sn < rcv_nxt + RcvWnd)
                     {
                         AckPush(sn, ts);
-                        if (_itimediff(sn, rcv_nxt) >= 0)
+                        if (sn >= rcv_nxt)
                         {
                             var seg = Segment.Get((int)length);
                             seg.conv = conv_;
@@ -583,16 +583,16 @@ namespace KcpProject
             if (flag != 0 && regular)
             {
                 uint current = CurrentMS;
-                if (_itimediff(current, latest) >= 0)
+                if (current >= latest)
                 {
-                    UpdateAck(_itimediff(current, latest));
+                    UpdateAck(TimeDiff(current, latest));
                 }
             }
 
             // cwnd update when packet arrived
             if (nocwnd == 0)
             {
-                if (_itimediff(snd_una, s_una) > 0)
+                if (snd_una > s_una)
                 {
                     if (cwnd < RmtWnd)
                     {
@@ -675,7 +675,7 @@ namespace KcpProject
             {
                 makeSpace(KCP.IKCP_OVERHEAD);
                 ackItem ack = acklist[i];
-                if (_itimediff(ack.sn, rcv_nxt) >= 0 || acklist.Count - 1 == i)
+                if (ack.sn >= rcv_nxt || acklist.Count - 1 == i)
                 {
                     seg.sn = ack.sn;
                     seg.ts = ack.ts;
@@ -703,7 +703,7 @@ namespace KcpProject
                 }
                 else
                 {
-                    if (_itimediff(current, ts_probe) >= 0)
+                    if (current >= ts_probe)
                     {
                         if (probe_wait < IKCP_PROBE_INIT)
                             probe_wait = IKCP_PROBE_INIT;
@@ -747,7 +747,7 @@ namespace KcpProject
             int newSegsCount = 0;
             for (int k = 0; k < snd_queue.Count; k++)
             {
-                if (_itimediff(snd_nxt, snd_una + cwnd_) >= 0)
+                if (snd_nxt >= snd_una + cwnd_)
                     break;
 
                 Segment newseg = snd_queue[k];
@@ -803,7 +803,7 @@ namespace KcpProject
                     change++;
                     earlyRetransSegs++;
                 }
-                else if (_itimediff(current, segment.resendts) >= 0) // RTO
+                else if (current >= segment.resendts) // RTO
                 {
                     needSend = true;
                     if (nodelay == 0)
@@ -831,7 +831,7 @@ namespace KcpProject
                 }
 
                 // get the nearest rto
-                int _rto = _itimediff(segment.resendts, current);
+                int _rto = TimeDiff(segment.resendts, current);
                 if (_rto > 0 && _rto < minrto)
                 {
                     minrto = _rto;
@@ -889,7 +889,7 @@ namespace KcpProject
                 ts_flush = current;
             }
 
-            int slap = _itimediff(current, ts_flush);
+            int slap = TimeDiff(current, ts_flush);
 
             if (slap >= 10000 || slap < -10000)
             {
@@ -900,7 +900,7 @@ namespace KcpProject
             if (slap >= 0)
             {
                 ts_flush += interval;
-                if (_itimediff(current, ts_flush) >= 0)
+                if (current >= ts_flush)
                     ts_flush = current + interval;
                 Flush(false);
             }
@@ -923,17 +923,17 @@ namespace KcpProject
             if (updated == 0)
                 return current;
 
-            if (_itimediff(current, ts_flush_) >= 10000 || _itimediff(current, ts_flush_) < -10000)
+            if (current >= ts_flush_ + 10000 || current < ts_flush_ - 10000)
                 ts_flush_ = current;
 
-            if (_itimediff(current, ts_flush_) >= 0)
+            if (current >= ts_flush_)
                 return current;
 
-            int tm_flush_ = _itimediff(ts_flush_, current);
+            int tm_flush_ = TimeDiff(ts_flush_, current);
 
             foreach (Segment seg in snd_buf)
             {
-                int diff = _itimediff(seg.resendts, current);
+                int diff = TimeDiff(seg.resendts, current);
                 if (diff <= 0)
                     return current;
                 if (diff < tm_packet)
