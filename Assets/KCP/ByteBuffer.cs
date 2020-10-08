@@ -5,19 +5,19 @@ namespace KcpProject
 {
     class ByteBuffer : ICloneable
     {
-        private byte[] buf;
-        private int readIndex = 0;
-        private int writeIndex = 0;
-        private int markReadIndex = 0;
-        private int markWirteIndex = 0;
-        private int capacity;
+        byte[] buf;
+        int readIndex = 0;
+        int writeIndex = 0;
+        int markReadIndex = 0;
+        int markWirteIndex = 0;
+        int capacity;
 
-        private static List<ByteBuffer> pool = new List<ByteBuffer>();
-        private static int poolMaxCount = 200;
+        static List<ByteBuffer> pool = new List<ByteBuffer>();
+        static int poolMaxCount = 200;
 
-        private bool isPool = false;
+        bool isPool = false;
 
-        private ByteBuffer(int capacity)
+        ByteBuffer(int capacity)
         {
             this.buf = new byte[capacity];
             this.capacity = capacity;
@@ -25,7 +25,7 @@ namespace KcpProject
             this.writeIndex = 0;
         }
 
-        private ByteBuffer(byte[] bytes)
+        ByteBuffer(byte[] bytes)
         {
             this.buf = new byte[bytes.Length];
             Array.Copy(bytes, 0, buf, 0, buf.Length);
@@ -113,7 +113,7 @@ namespace KcpProject
         /// </summary>
         /// <param name="value">参考容量</param>
         /// <returns>比参考容量大的最接近的2次方数</returns>
-        private int FixLength(int value)
+        int FixLength(int value)
         {
             if (value == 0)
             {
@@ -141,7 +141,7 @@ namespace KcpProject
         /// </summary>
         /// <param name="bytes">待转为高字节序的字节数组</param>
         /// <returns>低字节序列的字节数组</returns>
-        private byte[] Flip(byte[] bytes)
+        byte[] Flip(byte[] bytes)
         {
             //if (BitConverter.IsLittleEndian)
             //{
@@ -156,7 +156,7 @@ namespace KcpProject
         /// <param name="currLen">当前容量</param>
         /// <param name="futureLen">将来的容量</param>
         /// <returns>当前缓冲区的最大容量</returns>
-        private int FixSizeAndReset(int currLen, int futureLen)
+        int FixSizeAndReset(int currLen, int futureLen)
         {
             if (futureLen > currLen)
             {
@@ -391,7 +391,7 @@ namespace KcpProject
         /// <param name="index"></param>
         /// <param name="len"></param>
         /// <returns></returns>
-        private byte[] Get(int index, int len)
+        byte[] Get(int index, int len)
         {
             byte[] bytes = new byte[len];
             Array.Copy(buf, index, bytes, 0, len);
@@ -403,7 +403,7 @@ namespace KcpProject
         /// </summary>
         /// <param name="len">待读取的字节长度</param>
         /// <returns>字节数组</returns>
-        private byte[] Read(int len)
+        byte[] Read(int len)
         {
             byte[] bytes = Get(readIndex, len);
             readIndex += len;
@@ -928,7 +928,7 @@ namespace KcpProject
         /// </summary>
         /// <param name="type">值类型</param>
         /// <returns>int数据</returns>
-        private int ReadValue(DataType type)
+        int ReadValue(DataType type)
         {
             switch (type)
             {
