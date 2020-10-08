@@ -83,11 +83,6 @@ namespace KcpProject
             return 4;
         }
 
-        static uint _imin_(uint a, uint b)
-        {
-            return a <= b ? a : b;
-        }
-
         private static DateTime refTime = DateTime.Now;
 
         private static uint currentMS()
@@ -103,7 +98,7 @@ namespace KcpProject
 
         static uint _ibound_(uint lower, uint middle, uint upper)
         {
-            return _imin_(_imax_(lower, middle), upper);
+            return Math.Min(_imax_(lower, middle), upper);
         }
 
         static int _itimediff(uint later, uint earlier)
@@ -842,9 +837,9 @@ namespace KcpProject
             probe = 0;
 
             // calculate window size
-            uint cwnd_ = _imin_(snd_wnd, rmt_wnd);
+            uint cwnd_ = Math.Min(snd_wnd, rmt_wnd);
             if (0 == nocwnd)
-                cwnd_ = _imin_(cwnd, cwnd_);
+                cwnd_ = Math.Min(cwnd, cwnd_);
 
             // sliding window, controlled by snd_nxt && sna_una+cwnd
             int newSegsCount = 0;
