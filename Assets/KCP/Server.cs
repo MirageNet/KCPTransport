@@ -53,7 +53,7 @@ namespace Mirror.KCP
         public Task<IConnection> AcceptAsync()
         {
             // pop a connection from the queue,  and return it.
-            return null;
+            return Task.FromResult(new KcpConnection(null) as IConnection);
         }
 
 
