@@ -923,7 +923,7 @@ namespace KCPTransport
                 SendWindowMax = sendWindow;
 
             if (recvWindow > 0)
-                ReceiveWindowMax = recvWindow;
+                ReceiveWindowMax = Math.Max(recvWindow, IKCP_WND_RCV);
         }
 
         public bool ReserveBytes(int reservedSize)
