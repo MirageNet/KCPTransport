@@ -892,7 +892,7 @@ namespace KCPTransport
         // interval: internal update timer interval in millisec, default is 100ms
         // resend: 0:disable fast resend(default), 1:enable fast resend
         // nc: 0:normal congestion control(default), 1:disable congestion control
-        public void SetNoDelay(bool nodelay_, int interval_, int resend_, int nc_)
+        public void SetNoDelay(bool nodelay_, uint interval_, int resend_, int nc_)
         {
             if (nodelay_)
             {
@@ -906,7 +906,7 @@ namespace KCPTransport
                     interval_ = 5000;
                 else if (interval_ < 10)
                     interval_ = 10;
-                interval = (uint)interval_;
+                interval = interval_;
             }
 
             if (resend_ >= 0)
