@@ -251,27 +251,26 @@ namespace KCPTransport
         void UpdateAck(int rtt)
         {
             // https://tools.ietf.org/html/rfc6298
-            if (0 == rx_srtt)
+            if (rx_srtt == 0)
             {
                 rx_srtt = (uint)rtt;
                 rx_rttval = (uint)rtt >> 1;
             }
             else
             {
-                int delta = (int)((uint)rtt - rx_srtt);
-                rx_srtt += (uint)(delta >> 3);
-                if (0 > delta) delta = -delta;
+                uint delta = (uint)Math.Abs(rtt - rx_srtt);
+                rx_srtt += delta >> 3;
 
                 if (rtt < rx_srtt - rx_rttval)
                 {
                     // if the new RTT sample is below the bottom of the range of
                     // what an RTT measurement is expected to be.
                     // give an 8x reduced weight versus its normal weighting
-                    rx_rttval += (uint)((delta - rx_rttval) >> 5);
+                    rx_rttval += (delta - rx_rttval) >> 5;
                 }
                 else
                 {
-                    rx_rttval += (uint)((delta - rx_rttval) >> 2);
+                    rx_rttval += (delta - rx_rttval) >> 2;
                 }
             }
 
