@@ -22,7 +22,7 @@ namespace Mirror.KCP
         public IEnumerator CanEstablishConnections() => UniTask.ToCoroutine(async () =>
         {
             server = new Server();
-            await server.Start(PORT);
+            _ = server.Start(PORT);
 
             client = new KcpConnection(null);
 
@@ -39,7 +39,7 @@ namespace Mirror.KCP
         public IEnumerator CanSendData() => UniTask.ToCoroutine(async () =>
         {
             server = new Server();
-            await server.Start(PORT);
+            _ = server.Start(PORT);
 
             client = new KcpConnection(null);
 

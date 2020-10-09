@@ -62,7 +62,8 @@ namespace Mirror.KCP
                 _socket = new Socket(endpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
 
                 await _socket.ConnectAsync(endpoint, port);
-
+                byte[] data = new byte[] { 42 };
+                _socket.Send(data);
                 _kcp = new KCPTransport.KCP((uint)(new Random().Next(1, int.MaxValue)), SendAsync);
 
                 _kcp.NoDelay(0, 10, 2, 1);
