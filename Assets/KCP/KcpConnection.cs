@@ -5,7 +5,6 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using KcpProject;
 using UnityEngine;
 using Random = System.Random;
 
@@ -18,8 +17,7 @@ namespace Mirror.KCP
         #region Fields
 
         private Socket _socket;
-        private KcpProject.KCP _kcp;
-        private ByteBuffer _receiveBuffer = ByteBuffer.Allocate(1024 * 32);
+        private KCPTransport.KCP _kcp;
         private uint _nextUpdateTime = 0;
 
         #endregion
@@ -65,11 +63,10 @@ namespace Mirror.KCP
 
                 await _socket.ConnectAsync(endpoint, port);
 
-                _kcp = new KcpProject.KCP((uint)(new Random().Next(1, int.MaxValue)), SendAsync);
+                _kcp = new KCPTransport.KCP((uint)(new Random().Next(1, int.MaxValue)), SendAsync);
 
                 _kcp.NoDelay(0, 10, 2, 1);
                 _kcp.SetStreamMode(true);
-                _receiveBuffer.Clear();
 
                 _ = Task.Run(Tick);
 
@@ -85,7 +82,7 @@ namespace Mirror.KCP
 
         private void SendAsync(byte[] data, int length)
         {
-            Debug.Log("Kcp send triggered.");
+            _socket?.Send(data, length, SocketFlags.None);
         }
 
         #endregion
@@ -100,7 +97,7 @@ namespace Mirror.KCP
 
             int result = _kcp.Send(buffer);
 
-            Debug.Log(result == 1
+            Debug.Log(result == 0
                 ? $"Connection sent data: {BitConverter.ToString(data.Array)}"
                 : $"Connection failed to send data: {BitConverter.ToString(data.Array)}");
 
@@ -114,6 +111,7 @@ namespace Mirror.KCP
         /// <returns>true if we got a message, false if we got disconnected</returns>
         public Task<bool> ReceiveAsync(MemoryStream buffer)
         {
+            buffer.SetLength(0);
             buffer.TryGetBuffer(out ArraySegment<byte> byteBuffer);
 
             while (_kcp.Recv(byteBuffer.Array) > -1)
@@ -131,7 +129,6 @@ namespace Mirror.KCP
         {
             _socket?.Close();
             _socket = null;
-            _receiveBuffer.Clear();
         }
 
         /// <summary>

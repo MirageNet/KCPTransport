@@ -26,18 +26,8 @@ namespace Mirror.KCP
             {
                 Debug.Log("Starting up server.");
 
-                IPHostEntry hostEntry = await Dns.GetHostEntryAsync(address);
-
-                if (hostEntry.AddressList.Length == 0)
-                {
-                    throw new Exception("Unable to resolve host: " + address);
-                }
-
                 _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
-
-                if (true)
-                    _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.NoDelay, true);
 
                 IPHostEntry host = await Dns.GetHostEntryAsync(address);
                 IPAddress ipAddress = IPAddress.Parse(host.AddressList[1].ToString());
@@ -48,7 +38,7 @@ namespace Mirror.KCP
                 _socketListener = new TcpListener(localEndPoint);
                 _socketListener.Start(100);
 
-                Debug.Log("Server started finished starting up.");
+                Debug.Log("Server started.");
             }
             catch (Exception ex)
             {
@@ -62,22 +52,30 @@ namespace Mirror.KCP
         /// <returns></returns>
         public async Task<Socket> AcceptAsync()
         {
-            if (_socketListener == null) return null;
+            try
+            {
+                if (_socketListener == null) return null;
 
-            Socket client = await _socketListener.AcceptSocketAsync();
+                Socket connection = await _socketListener.AcceptSocketAsync();
 
-            Debug.Log($"Incoming connection: {client.RemoteEndPoint}");
+                Debug.Log($"Incoming connection: {connection.RemoteEndPoint}");
 
-            return client;
+                return connection;
+            }
+            catch
+            {
+                // Normal during closing.
+                return null;
+            }
         }
         /// <summary>
         ///     Shutdown the server and stop listening for connections.
         /// </summary>
         public void Shutdown()
         {
-            _socketListener.Stop();
-            _socket.Close();
-            _socket.Dispose();
+            _socketListener?.Stop();
+            _socket?.Close();
+            _socket?.Dispose();
             _socket = null;
         }
 
