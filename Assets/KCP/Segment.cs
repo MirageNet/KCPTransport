@@ -54,15 +54,14 @@ namespace KCPTransport
         internal int Encode(byte[] ptr, int offset)
         {
             int offset_ = offset;
-
-            offset += KCP.Encode32U(ptr, offset, conv);
-            offset += KCP.Encode8u(ptr, offset, (byte)cmd);
-            offset += KCP.Encode8u(ptr, offset, (byte)frg);
-            offset += KCP.Encode16U(ptr, offset, (ushort)wnd);
-            offset += KCP.Encode32U(ptr, offset, ts);
-            offset += KCP.Encode32U(ptr, offset, sn);
-            offset += KCP.Encode32U(ptr, offset, una);
-            offset += KCP.Encode32U(ptr, offset, (uint)data.ReadableBytes);
+            offset += Utils.Encode32U(ptr, offset, conv);
+            offset += Utils.Encode8u(ptr, offset, (byte)cmd);
+            offset += Utils.Encode8u(ptr, offset, (byte)frg);
+            offset += Utils.Encode16U(ptr, offset, (ushort)wnd);
+            offset += Utils.Encode32U(ptr, offset, ts);
+            offset += Utils.Encode32U(ptr, offset, sn);
+            offset += Utils.Encode32U(ptr, offset, una);
+            offset += Utils.Encode32U(ptr, offset, (uint)data.ReadableBytes);
 
             return offset - offset_;
         }

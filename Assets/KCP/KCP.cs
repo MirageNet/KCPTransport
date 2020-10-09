@@ -28,72 +28,7 @@ namespace KCPTransport
         public const int IKCP_PROBE_LIMIT = 120000; // up to 120 secs to probe window
         public const int IKCP_SN_OFFSET = 12;
 
-
-        // encode 8 bits unsigned int
-        public static int Encode8u(byte[] p, int offset, byte c)
-        {
-            p[0 + offset] = c;
-            return 1;
-        }
-
-        // decode 8 bits unsigned int
-        public static int Decode8u(byte[] p, int offset, ref byte c)
-        {
-            c = p[0 + offset];
-            return 1;
-        }
-
-        /* encode 16 bits unsigned int (lsb) */
-        public static int Encode16U(byte[] p, int offset, ushort w)
-        {
-            p[0 + offset] = (byte)(w >> 0);
-            p[1 + offset] = (byte)(w >> 8);
-            return 2;
-        }
-
-        /* decode 16 bits unsigned int (lsb) */
-        public static int Decode16U(byte[] p, int offset, ref ushort c)
-        {
-            ushort result = 0;
-            result |= p[0 + offset];
-            result |= (ushort)(p[1 + offset] << 8);
-            c = result;
-            return 2;
-        }
-
-        /* encode 32 bits unsigned int (lsb) */
-        public static int Encode32U(byte[] p, int offset, uint l)
-        {
-            p[0 + offset] = (byte)(l >> 0);
-            p[1 + offset] = (byte)(l >> 8);
-            p[2 + offset] = (byte)(l >> 16);
-            p[3 + offset] = (byte)(l >> 24);
-            return 4;
-        }
-
-        /* decode 32 bits unsigned int (lsb) */
-        public static int Decode32U(byte[] p, int offset, ref uint c)
-        {
-            uint result = 0;
-            result |= p[0 + offset];
-            result |= (uint)(p[1 + offset] << 8);
-            result |= (uint)(p[2 + offset] << 16);
-            result |= (uint)(p[3 + offset] << 24);
-            c = result;
-            return 4;
-        }
-
         private static readonly DateTime refTime = DateTime.Now;
-
-        static uint Clamp(uint value, uint lower, uint upper)
-        {
-            return Math.Min(Math.Max(lower, value), upper);
-        }
-
-        static int TimeDiff(uint later, uint earlier)
-        {
-            return ((int)(later - earlier));
-        }
 
         internal struct ackItem
         {
@@ -341,7 +276,7 @@ namespace KCPTransport
             }
 
             int rto = (int)(rx_srtt + Math.Max(interval, rx_rttval << 2));
-            rx_rto = Clamp((uint)rto, rx_minrto, IKCP_RTO_MAX);
+            rx_rto = Utils.Clamp((uint)rto, rx_minrto, IKCP_RTO_MAX);
         }
 
         void ShrinkBuf()
@@ -490,17 +425,17 @@ namespace KCPTransport
 
                 if (size - (offset - index) < IKCP_OVERHEAD) break;
 
-                offset += Decode32U(data, offset, ref conv_);
+                offset += Utils.Decode32U(data, offset, ref conv_);
 
                 if (conv != conv_) return -1;
 
-                offset += Decode8u(data, offset, ref cmd);
-                offset += Decode8u(data, offset, ref frg);
-                offset += Decode16U(data, offset, ref wnd);
-                offset += Decode32U(data, offset, ref ts);
-                offset += Decode32U(data, offset, ref sn);
-                offset += Decode32U(data, offset, ref una);
-                offset += Decode32U(data, offset, ref length);
+                offset += Utils.Decode8u(data, offset, ref cmd);
+                offset += Utils.Decode8u(data, offset, ref frg);
+                offset += Utils.Decode16U(data, offset, ref wnd);
+                offset += Utils.Decode32U(data, offset, ref ts);
+                offset += Utils.Decode32U(data, offset, ref sn);
+                offset += Utils.Decode32U(data, offset, ref una);
+                offset += Utils.Decode32U(data, offset, ref length);
 
                 if (size - (offset - index) < length) return -2;
 
@@ -576,7 +511,7 @@ namespace KCPTransport
                 uint current = CurrentMS;
                 if (current >= latest)
                 {
-                    UpdateAck(TimeDiff(current, latest));
+                    UpdateAck(Utils.TimeDiff(current, latest));
                 }
             }
 
@@ -820,7 +755,7 @@ namespace KCPTransport
                 }
 
                 // get the nearest rto
-                int _rto = TimeDiff(segment.resendts, current);
+                int _rto = Utils.TimeDiff(segment.resendts, current);
                 if (_rto > 0 && _rto < minrto)
                 {
                     minrto = _rto;
@@ -878,7 +813,7 @@ namespace KCPTransport
                 ts_flush = current;
             }
 
-            int slap = TimeDiff(current, ts_flush);
+            int slap = Utils.TimeDiff(current, ts_flush);
 
             if (slap >= 10000 || slap < -10000)
             {
@@ -918,11 +853,11 @@ namespace KCPTransport
             if (current >= ts_flush_)
                 return current;
 
-            int tm_flush_ = TimeDiff(ts_flush_, current);
+            int tm_flush_ = Utils.TimeDiff(ts_flush_, current);
 
             foreach (Segment seg in snd_buf)
             {
-                int diff = TimeDiff(seg.resendts, current);
+                int diff = Utils.TimeDiff(seg.resendts, current);
                 if (diff <= 0)
                     return current;
                 if (diff < tm_packet)
