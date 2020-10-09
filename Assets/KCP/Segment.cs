@@ -20,7 +20,7 @@ namespace KCPTransport
         internal uint acked;
         internal ByteBuffer data;
 
-        private static Stack<Segment> msSegmentPool = new Stack<Segment>(32);
+        private static readonly Stack<Segment> msSegmentPool = new Stack<Segment>(32);
 
         public static Segment Get(int size)
         {
