@@ -109,7 +109,7 @@ namespace KCPTransport
         uint rx_rto; uint rx_minrto;
         uint cwnd; uint probe;
         uint interval; uint ts_flush;
-        uint nodelay; uint updated;
+        uint nodelay; bool updated;
         uint ts_probe; uint probe_wait;
         uint incr;
 
@@ -872,9 +872,9 @@ namespace KCPTransport
         {
             uint current = CurrentMS;
 
-            if (0 == updated)
+            if (!updated)
             {
-                updated = 1;
+                updated = true;
                 ts_flush = current;
             }
 
@@ -909,7 +909,7 @@ namespace KCPTransport
             uint ts_flush_ = ts_flush;
             int tm_packet = 0x7fffffff;
 
-            if (updated == 0)
+            if (!updated)
                 return current;
 
             if (current >= ts_flush_ + 10000 || current < ts_flush_ - 10000)
