@@ -202,9 +202,7 @@ namespace KCPTransport
             if (peekSize > length)
                 return -2;
 
-            bool fast_recover = false;
-            if (rcv_queue.Count >= RcvWnd)
-                fast_recover = true;
+            bool fastRecover = (rcv_queue.Count >= RcvWnd);
 
             // merge fragment.
             int count = 0;
@@ -248,7 +246,7 @@ namespace KCPTransport
             }
 
             // fast recover
-            if (rcv_queue.Count < RcvWnd && fast_recover)
+            if (rcv_queue.Count < RcvWnd && fastRecover)
             {
                 // ready to send back IKCP_CMD_WINS in ikcp_flush
                 // tell remote my window size
