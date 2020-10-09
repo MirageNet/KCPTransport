@@ -1,19 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace KCPTransport
 {
     class ByteBuffer : ICloneable
     {
-        int readIndex = 0;
-        int writeIndex = 0;
-        int markReadIndex = 0;
-        int markWirteIndex = 0;
+        int readIndex;
+        int writeIndex;
+        int markReadIndex;
+        int markWirteIndex;
 
         static List<ByteBuffer> pool = new List<ByteBuffer>();
         static int poolMaxCount = 200;
 
-        bool isPool = false;
+        bool isPool;
 
         ByteBuffer(int capacity)
         {
@@ -764,7 +765,7 @@ namespace KCPTransport
         /// <param name="lenType">Type of string length written</param>
         public void WriteUTF8String(string content, DataType lenType)
         {
-            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(content);
+            byte[] bytes = Encoding.UTF8.GetBytes(content);
             int max;
             if (lenType == DataType.BYTE)
             {
@@ -800,7 +801,7 @@ namespace KCPTransport
         {
             byte[] bytes = new byte[len];
             ReadBytes(bytes, 0, len);
-            return System.Text.Encoding.UTF8.GetString(bytes);
+            return Encoding.UTF8.GetString(bytes);
         }
 
         public string ReadUTF8String(DataType lenType)
