@@ -1,64 +1,48 @@
 using System;
 using System.Collections.Generic;
 
-namespace KcpProject
+namespace KCPTransport
 {
     class ByteBuffer : ICloneable
     {
-        //字节缓存区
-        private byte[] buf;
-        //读取索引
-        private int readIndex = 0;
-        //写入索引
-        private int writeIndex = 0;
-        //读取索引标记
-        private int markReadIndex = 0;
-        //写入索引标记
-        private int markWirteIndex = 0;
-        //缓存区字节数组的长度
-        private int capacity;
+        byte[] buf;
+        int readIndex = 0;
+        int writeIndex = 0;
+        int markReadIndex = 0;
+        int markWirteIndex = 0;
+        int capacity;
 
-        //对象池
-        private static List<ByteBuffer> pool = new List<ByteBuffer>();
-        private static int poolMaxCount = 200;
+        static List<ByteBuffer> pool = new List<ByteBuffer>();
+        static int poolMaxCount = 200;
 
-        //此对象是否池化
-        private bool isPool = false;
+        bool isPool = false;
 
-        /// <summary>
-        /// 构造方法
-        /// </summary>
-        /// <param name="capacity">初始容量</param>
-        private ByteBuffer(int capacity)
+        ByteBuffer(int capacity)
         {
-            this.buf = new byte[capacity];
+            buf = new byte[capacity];
             this.capacity = capacity;
-            this.readIndex = 0;
-            this.writeIndex = 0;
+            readIndex = 0;
+            writeIndex = 0;
         }
 
-        /// <summary>
-        /// 构造方法
-        /// </summary>
-        /// <param name="bytes">初始字节数组</param>
-        private ByteBuffer(byte[] bytes)
+        ByteBuffer(byte[] bytes)
         {
-            this.buf = new byte[bytes.Length];
+            buf = new byte[bytes.Length];
             Array.Copy(bytes, 0, buf, 0, buf.Length);
-            this.capacity = buf.Length;
-            this.readIndex = 0;
-            this.writeIndex = bytes.Length + 1;
+            capacity = buf.Length;
+            readIndex = 0;
+            writeIndex = bytes.Length + 1;
         }
 
         /// <summary>
-        /// 构建一个capacity长度的字节缓存区ByteBuffer对象
+        /// Construct a capacity length byte buffer ByteBuffer object
         /// </summary>
-        /// <param name="capacity">初始容量</param>
+        /// <param name="capacity">Initial capacity</param>
         /// <param name="fromPool">
-        /// true表示获取一个池化的ByteBuffer对象，池化的对象必须在调用Dispose后才会推入池中，此方法为线程安全的。
-        /// 当为true时，从池中获取的对象的实际capacity值。
+        /// true means to obtain a pooled ByteBuffer object, the pooled object must be pushed into the pool after calling Dispose, this method is thread-safe.
+        /// When true, the actual capacity value of the object obtained from the pool
         /// </param>
-        /// <returns>ByteBuffer对象</returns>
+        /// <returns>ByteBuffer object</returns>
         public static ByteBuffer Allocate(int capacity, bool fromPool = false)
         {
             if (!fromPool)
@@ -88,13 +72,13 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 构建一个以bytes为字节缓存区的ByteBuffer对象，一般不推荐使用
+        /// Construct a ByteBuffer object with bytes as the byte buffer, generally not recommended
         /// </summary>
-        /// <param name="bytes">初始字节数组</param>
+        /// <param name="bytes">Initial byte array</param>
         /// <param name="fromPool">
-        /// true表示获取一个池化的ByteBuffer对象，池化的对象必须在调用Dispose后才会推入池中，此方法为线程安全的。
+        /// true means to obtain a pooled ByteBuffer object, the pooled object must be pushed into the pool after calling Dispose, this method is thread-safe.
         /// </param>
-        /// <returns>ByteBuffer对象</returns>
+        /// <returns>ByteBuffer object</returns>
         public static ByteBuffer Allocate(byte[] bytes, bool fromPool = false)
         {
             if (!fromPool)
@@ -125,11 +109,11 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 根据value，确定大于此length的最近的2次方数，如length=7，则返回值为8；length=12，则返回16
+        /// According to the value, determine the nearest 2nd power greater than this length, such as length=7, the return value is 8; length=12, then 16
         /// </summary>
-        /// <param name="value">参考容量</param>
-        /// <returns>比参考容量大的最接近的2次方数</returns>
-        private int FixLength(int value)
+        /// <param name="value">Reference capacity</param>
+        /// <returns>The nearest second power greater than the reference capacity</returns>
+        int FixLength(int value)
         {
             if (value == 0)
             {
@@ -153,11 +137,11 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 翻转字节数组，如果本地字节序列为高字节序列，则进行翻转以转换为低字节序列
+        /// Flip the byte array, if the local byte sequence is a high byte sequence, flip to convert to a low byte sequence
         /// </summary>
-        /// <param name="bytes">待转为高字节序的字节数组</param>
-        /// <returns>低字节序列的字节数组</returns>
-        private byte[] Flip(byte[] bytes)
+        /// <param name="bytes">Byte array to be converted to high-endian</param>
+        /// <returns>Byte array of low byte sequence</returns>
+        byte[] Flip(byte[] bytes)
         {
             //if (BitConverter.IsLittleEndian)
             //{
@@ -167,20 +151,20 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 确定内部字节缓存数组的大小
+        /// Determine the size of the internal byte buffer array
         /// </summary>
-        /// <param name="currLen">当前容量</param>
-        /// <param name="futureLen">将来的容量</param>
-        /// <returns>当前缓冲区的最大容量</returns>
-        private int FixSizeAndReset(int currLen, int futureLen)
+        /// <param name="currLen">Current capacity</param>
+        /// <param name="futureLen">Future capacity</param>
+        /// <returns>The maximum capacity of the current buffer</returns>
+        int FixSizeAndReset(int currLen, int futureLen)
         {
             if (futureLen > currLen)
             {
-                //以原大小的2次方数的两倍确定内部字节缓存区大小
+                //Determine the size of the internal byte buffer with twice the original size to the power of 2
                 int size = FixLength(currLen) * 2;
                 if (futureLen > size)
                 {
-                    //以将来的大小的2次方的两倍确定内部字节缓存区大小
+                    //Determine the size of the internal byte buffer by twice the power of the future size
                     size = FixLength(futureLen) * 2;
                 }
                 byte[] newbuf = new byte[size];
@@ -192,24 +176,24 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 确保有这么多字节可以用来写入
+        /// Make sure there are so many bytes available for writing
         /// </summary>
         /// <param name="minBytes"></param>
         public void EnsureWritableBytes(int minBytes)
         {
-            // 如果没有足够的空间进行写入了
+            // If there is not enough space for writing
             if (WritableBytes < minBytes)
             {
 
-                // 优先整理空间
+                // Prioritize space
                 if (ReaderIndex >= minBytes)
                 {
-                    // 整理出来可用空间
+                    // Organize the available space
                     TrimReadedBytes();
                 }
                 else
                 {
-                    // 空间不足时，重新分配内存
+                    // When space is insufficient, reallocate memory
                     FixSizeAndReset(buf.Length, buf.Length + minBytes);
                 }
             }
@@ -223,11 +207,11 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 将bytes字节数组从startIndex开始的length字节写入到此缓存区
+        /// Write length bytes starting from startIndex of bytes byte array to this buffer
         /// </summary>
-        /// <param name="bytes">待写入的字节数据</param>
-        /// <param name="startIndex">写入的开始位置</param>
-        /// <param name="length">写入的长度</param>
+        /// <param name="bytes">Byte data to be written</param>
+        /// <param name="startIndex">Start position of writing</param>
+        /// <param name="length">Length written</param>
         public void WriteBytes(byte[] bytes, int startIndex, int length)
         {
             if (length <= 0 || startIndex < 0) return;
@@ -240,28 +224,28 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 将字节数组中从0到length的元素写入缓存区
+        /// Write the elements from 0 to length in the byte array to the buffer
         /// </summary>
-        /// <param name="bytes">待写入的字节数据</param>
-        /// <param name="length">写入的长度</param>
+        /// <param name="bytes">Byte data to be written</param>
+        /// <param name="length">Length written</param>
         public void WriteBytes(byte[] bytes, int length)
         {
             WriteBytes(bytes, 0, length);
         }
 
         /// <summary>
-        /// 将字节数组全部写入缓存区
+        /// Write all byte arrays into the buffer
         /// </summary>
-        /// <param name="bytes">待写入的字节数据</param>
+        /// <param name="bytes">Byte data to be written</param>
         public void WriteBytes(byte[] bytes)
         {
             WriteBytes(bytes, bytes.Length);
         }
 
         /// <summary>
-        /// 将一个ByteBuffer的有效字节区写入此缓存区中
+        /// Write the effective byte area of ​​a ByteBuffer into this buffer area
         /// </summary>
-        /// <param name="buffer">待写入的字节缓存区</param>
+        /// <param name="buffer">Byte buffer area to be written</param>
         public void Write(ByteBuffer buffer)
         {
             if (buffer == null) return;
@@ -269,28 +253,16 @@ namespace KcpProject
             WriteBytes(buffer.ToArray());
         }
 
-        /// <summary>
-        /// 写入一个int16数据
-        /// </summary>
-        /// <param name="value">short数据</param>
         public void WriteShort(short value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个uint16数据
-        /// </summary>
-        /// <param name="value">ushort数据</param>
         public void WriteUshort(ushort value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个int32数据
-        /// </summary>
-        /// <param name="value">int数据</param>
         public void WriteInt(int value)
         {
             //byte[] array = new byte[4];
@@ -304,46 +276,26 @@ namespace KcpProject
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个uint32数据
-        /// </summary>
-        /// <param name="value">uint数据</param>
         public void WriteUint(uint value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个int64数据
-        /// </summary>
-        /// <param name="value">long数据</param>
         public void WriteLong(long value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个uint64数据
-        /// </summary>
-        /// <param name="value">ulong数据</param>
         public void WriteUlong(ulong value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个float数据
-        /// </summary>
-        /// <param name="value">float数据</param>
         public void WriteFloat(float value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个byte数据
-        /// </summary>
-        /// <param name="value">byte数据</param>
         public void WriteByte(byte value)
         {
             int afterLen = writeIndex + 1;
@@ -353,47 +305,27 @@ namespace KcpProject
             writeIndex = afterLen;
         }
 
-        /// <summary>
-        /// 写入一个byte数据
-        /// </summary>
-        /// <param name="value">byte数据</param>
         public void WriteByte(int value)
         {
             byte b = (byte)value;
             WriteByte(b);
         }
 
-        /// <summary>
-        /// 写入一个double类型数据
-        /// </summary>
-        /// <param name="value">double数据</param>
         public void WriteDouble(double value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个字符
-        /// </summary>
-        /// <param name="value"></param>
         public void WriteChar(char value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 写入一个布尔型数据
-        /// </summary>
-        /// <param name="value"></param>
         public void WriteBoolean(bool value)
         {
             WriteBytes(Flip(BitConverter.GetBytes(value)));
         }
 
-        /// <summary>
-        /// 读取一个字节
-        /// </summary>
-        /// <returns>字节数据</returns>
         public byte ReadByte()
         {
             byte b = buf[readIndex];
@@ -402,12 +334,12 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 获取从index索引处开始len长度的字节
+        /// Get the length of len bytes from the index
         /// </summary>
         /// <param name="index"></param>
         /// <param name="len"></param>
         /// <returns></returns>
-        private byte[] Get(int index, int len)
+        byte[] Get(int index, int len)
         {
             byte[] bytes = new byte[len];
             Array.Copy(buf, index, bytes, 0, len);
@@ -415,119 +347,79 @@ namespace KcpProject
         }
 
         /// <summary>
-        /// 从读取索引位置开始读取len长度的字节数组
+        /// Read the byte array of length len from the reading index position
         /// </summary>
-        /// <param name="len">待读取的字节长度</param>
-        /// <returns>字节数组</returns>
-        private byte[] Read(int len)
+        /// <param name="len">Length of bytes to be read</param>
+        /// <returns>Byte array</returns>
+        byte[] Read(int len)
         {
             byte[] bytes = Get(readIndex, len);
             readIndex += len;
             return bytes;
         }
 
-        /// <summary>
-        /// 读取一个uint16数据
-        /// </summary>
-        /// <returns>ushort数据</returns>
         public ushort ReadUshort()
         {
             return BitConverter.ToUInt16(Read(2), 0);
         }
 
-        /// <summary>
-        /// 读取一个int16数据
-        /// </summary>
-        /// <returns>short数据</returns>
         public short ReadShort()
         {
             return BitConverter.ToInt16(Read(2), 0);
         }
 
-        /// <summary>
-        /// 读取一个uint32数据
-        /// </summary>
-        /// <returns>uint数据</returns>
         public uint ReadUint()
         {
             return BitConverter.ToUInt32(Read(4), 0);
         }
 
-        /// <summary>
-        /// 读取一个int32数据
-        /// </summary>
-        /// <returns>int数据</returns>
         public int ReadInt()
         {
             return BitConverter.ToInt32(Read(4), 0);
         }
 
-        /// <summary>
-        /// 读取一个uint64数据
-        /// </summary>
-        /// <returns>ulong数据</returns>
         public ulong ReadUlong()
         {
             return BitConverter.ToUInt64(Read(8), 0);
         }
 
-        /// <summary>
-        /// 读取一个long数据
-        /// </summary>
-        /// <returns>long数据</returns>
         public long ReadLong()
         {
             return BitConverter.ToInt64(Read(8), 0);
         }
 
-        /// <summary>
-        /// 读取一个float数据
-        /// </summary>
-        /// <returns>float数据</returns>
         public float ReadFloat()
         {
             return BitConverter.ToSingle(Read(4), 0);
         }
 
-        /// <summary>
-        /// 读取一个double数据
-        /// </summary>
-        /// <returns>double数据</returns>
         public double ReadDouble()
         {
             return BitConverter.ToDouble(Read(8), 0);
         }
 
-        /// <summary>
-        /// 读取一个字符
-        /// </summary>
-        /// <returns></returns>
         public char ReadChar()
         {
             return BitConverter.ToChar(Read(2), 0);
         }
 
-        /// <summary>
-        /// 读取布尔型数据
-        /// </summary>
-        /// <returns></returns>
         public bool ReadBoolean()
         {
             return BitConverter.ToBoolean(Read(1), 0);
         }
 
         /// <summary>
-        /// 从读取索引位置开始读取len长度的字节到disbytes目标字节数组中
+        /// Read bytes of length len from the reading index position into the target byte array of disbytes
         /// </summary>
-        /// <param name="disbytes">读取的字节将存入此字节数组</param>
-        /// <param name="disstart">目标字节数组的写入索引</param>
-        /// <param name="len">读取的长度</param>
+        /// <param name="disbytes">The bytes read will be stored in this byte array</param>
+        /// <param name="disstart">The write index of the target byte array</param>
+        /// <param name="len">Read length</param>
         public void ReadBytes(byte[] disbytes, int disstart, int len)
         {
             int size = disstart + len;
             for (int i = disstart; i < size; i++)
             {
-                disbytes[i] = this.ReadByte();
+                disbytes[i] = ReadByte();
             }
         }
 
@@ -547,217 +439,118 @@ namespace KcpProject
             return buffer;
         }
 
-        /// <summary>
-        /// 获取一个字节
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
         public byte GetByte(int index)
         {
             return buf[index];
         }
 
-        /// <summary>
-        /// 获取一个字节
-        /// </summary>
-        /// <returns></returns>
         public byte GetByte()
         {
             return GetByte(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个双精度浮点数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public double GetDouble(int index)
         {
             return BitConverter.ToDouble(Get(index, 8), 0);
         }
 
-        /// <summary>
-        /// 获取一个双精度浮点数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public double GetDouble()
         {
             return GetDouble(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个浮点数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public float GetFloat(int index)
         {
             return BitConverter.ToSingle(Get(index, 4), 0);
         }
 
-        /// <summary>
-        /// 获取一个浮点数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public float GetFloat()
         {
             return GetFloat(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个长整形数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public long GetLong(int index)
         {
             return BitConverter.ToInt64(Get(index, 8), 0);
         }
 
-        /// <summary>
-        /// 获取一个长整形数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public long GetLong()
         {
             return GetLong(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个长整形数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public ulong GetUlong(int index)
         {
             return BitConverter.ToUInt64(Get(index, 8), 0);
         }
 
-        /// <summary>
-        /// 获取一个长整形数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public ulong GetUlong()
         {
             return GetUlong(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个整形数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public int GetInt(int index)
         {
             return BitConverter.ToInt32(Get(index, 4), 0);
         }
 
-        /// <summary>
-        /// 获取一个整形数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public int GetInt()
         {
             return GetInt(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个整形数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public uint GetUint(int index)
         {
             return BitConverter.ToUInt32(Get(index, 4), 0);
         }
 
-        /// <summary>
-        /// 获取一个整形数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public uint GetUint()
         {
             return GetUint(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个短整形数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public int GetShort(int index)
         {
             return BitConverter.ToInt16(Get(index, 2), 0);
         }
 
-        /// <summary>
-        /// 获取一个短整形数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public int GetShort()
         {
             return GetShort(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个短整形数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public int GetUshort(int index)
         {
             return BitConverter.ToUInt16(Get(index, 2), 0);
         }
 
-        /// <summary>
-        /// 获取一个短整形数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public int GetUshort()
         {
             return GetUshort(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个char数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public char GetChar(int index)
         {
             return BitConverter.ToChar(Get(index, 2), 0);
         }
 
-        /// <summary>
-        /// 获取一个char数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public char GetChar()
         {
             return GetChar(readIndex);
         }
 
-        /// <summary>
-        /// 获取一个布尔数据，不改变数据内容
-        /// </summary>
-        /// <param name="index">字节索引</param>
-        /// <returns></returns>
         public bool GetBoolean(int index)
         {
             return BitConverter.ToBoolean(Get(index, 1), 0);
         }
 
-        /// <summary>
-        /// 获取一个布尔数据，不改变数据内容
-        /// </summary>
-        /// <returns></returns>
         public bool GetBoolean()
         {
             return GetBoolean(readIndex);
         }
 
         /// <summary>
-        /// 清除已读字节并重建缓存区
+        /// Clear the read bytes and rebuild the buffer area
         /// </summary>
         public void DiscardReadBytes()
         {
@@ -781,9 +574,6 @@ namespace KcpProject
             readIndex = 0;
         }
 
-        /// <summary>
-        /// 设置/获取读指针位置
-        /// </summary>
         public int ReaderIndex
         {
             get
@@ -797,9 +587,6 @@ namespace KcpProject
             }
         }
 
-        /// <summary>
-        /// 设置/获取写指针位置
-        /// </summary>
         public int WriterIndex
         {
             get
@@ -813,42 +600,26 @@ namespace KcpProject
             }
         }
 
-        /// <summary>
-        /// 标记读取的索引位置
-        /// </summary>
         public void MarkReaderIndex()
         {
             markReadIndex = readIndex;
         }
 
-        /// <summary>
-        /// 标记写入的索引位置
-        /// </summary>
         public void MarkWriterIndex()
         {
             markWirteIndex = writeIndex;
         }
 
-        /// <summary>
-        /// 将读取的索引位置重置为标记的读取索引位置
-        /// </summary>
         public void ResetReaderIndex()
         {
             readIndex = markReadIndex;
         }
 
-        /// <summary>
-        /// 将写入的索引位置重置为标记的写入索引位置
-        /// </summary>
         public void ResetWriterIndex()
         {
             writeIndex = markWirteIndex;
         }
 
-        /// <summary>
-        /// 可读的有效字节数
-        /// </summary>
-        /// <returns>可读的字节数</returns>
         public int ReadableBytes
         {
             get
@@ -857,10 +628,6 @@ namespace KcpProject
             }
         }
 
-        /// <summary>
-        /// 可写的剩余空间数
-        /// </summary>
-        /// <returns>可写的字节数</returns>
         public int WritableBytes
         {
             get
@@ -869,15 +636,11 @@ namespace KcpProject
             }
         }
 
-        /// <summary>
-        /// 获取缓存区容量大小
-        /// </summary>
-        /// <returns>缓存区容量</returns>
         public int Capacity
         {
             get
             {
-                return this.capacity;
+                return capacity;
             }
         }
 
@@ -889,10 +652,6 @@ namespace KcpProject
             }
         }
 
-        /// <summary>
-        /// 获取可读的字节数组
-        /// </summary>
-        /// <returns>字节数据</returns>
         public byte[] ToArray()
         {
             byte[] bytes = new byte[writeIndex - readIndex];
@@ -900,60 +659,43 @@ namespace KcpProject
             return bytes;
         }
 
-        /// <summary>
-        /// 简单的数据类型
-        /// </summary>
         public enum DataType
         {
-            //byte类型
             BYTE = 1,
-            //short类型
             SHORT = 2,
-            //int类型
             INT = 3,
-            //long类型
             LONG = 4
         }
 
-        /// <summary>
-        /// 写入一个数据
-        /// </summary>
-        /// <param name="value">待写入的数据</param>
-        /// <param name="type">待写入的数据类型</param>
-        private void WriteValue(int value, DataType type)
+        void WriteValue(int value, DataType type)
         {
             switch (type)
             {
                 case DataType.BYTE:
-                    this.WriteByte(value);
+                    WriteByte(value);
                     break;
                 case DataType.SHORT:
-                    this.WriteShort((short)value);
+                    WriteShort((short)value);
                     break;
                 case DataType.LONG:
-                    this.WriteLong((long)value);
+                    WriteLong(value);
                     break;
                 default:
-                    this.WriteInt(value);
+                    WriteInt(value);
                     break;
             }
         }
 
-        /// <summary>
-        /// 读取一个值，值类型根据type决定，int或short或byte
-        /// </summary>
-        /// <param name="type">值类型</param>
-        /// <returns>int数据</returns>
-        private int ReadValue(DataType type)
+        int ReadValue(DataType type)
         {
             switch (type)
             {
                 case DataType.BYTE:
-                    return (int)ReadByte();
+                    return ReadByte();
                 case DataType.SHORT:
-                    return (int)ReadShort();
+                    return ReadShort();
                 case DataType.INT:
-                    return (int)ReadInt();
+                    return ReadInt();
                 case DataType.LONG:
                     return (int)ReadLong();
                 default:
@@ -1029,11 +771,11 @@ namespace KcpProject
         //}
 
         /// <summary>
-        /// 写入一个UTF-8字符串，UTF-8字符串无高低字节序问题
-        /// <para>写入缓冲区的结构为字符串字节长度（类型由lenType指定） + 字符串字节数组</para>
+        /// Write a UTF-8 string, UTF-8 string has no byte order problem
+        /// <para>The structure of the write buffer is string byte length (the type is specified by lenType) + string byte array</para>
         /// </summary>
-        /// <param name="content">待写入的字符串</param>
-        /// <param name="lenType">写入的字符串长度类型</param>
+        /// <param name="content">String to be written</param>
+        /// <param name="lenType">Type of string length written</param>
         public void WriteUTF8String(string content, DataType lenType)
         {
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(content);
@@ -1063,49 +805,31 @@ namespace KcpProject
             }
         }
 
-        /// <summary>
-        /// 写入以short表示的字符串字节长度和字符串字节数据
-        /// </summary>
-        /// <param name="content"></param>
         public void WriteUTF(string content)
         {
-            this.WriteUTF8String(content, DataType.SHORT);
+            WriteUTF8String(content, DataType.SHORT);
         }
 
-        /// <summary>
-        /// 读取一个UTF-8字符串，UTF-8字符串无高低字节序问题
-        /// </summary>
-        /// <param name="len">需读取的字符串长度</param>
-        /// <returns>字符串</returns>
         public string ReadUTF8String(int len)
         {
             byte[] bytes = new byte[len];
-            this.ReadBytes(bytes, 0, len);
+            ReadBytes(bytes, 0, len);
             return System.Text.Encoding.UTF8.GetString(bytes);
         }
 
-        /// <summary>
-        /// 读取一个UTF-8字符串，UTF-8字符串无高低字节序问题
-        /// </summary>
-        /// <param name="lenType">字符串长度类型</param>
-        /// <returns>字符串</returns>
         public string ReadUTF8String(DataType lenType)
         {
             int len = ReadValue(lenType);
             return ReadUTF8String(len);
         }
 
-        /// <summary>
-        /// 读取short类型的字符串字节长度，然后根据此长度读取对应数量的字节数据后转为字符串
-        /// </summary>
-        /// <returns>UTF-8字符串</returns>
         public string ReadUTF()
         {
-            return this.ReadUTF8String(DataType.SHORT);
+            return ReadUTF8String(DataType.SHORT);
         }
 
         /// <summary>
-        /// 复制一个对象，具有与原对象相同的数据，不改变原对象的数据，不包括已读数据
+        /// Copy an object with the same data as the original object without changing the data of the original object, excluding the read data
         /// </summary>
         /// <returns></returns>
         public ByteBuffer Copy()
@@ -1120,14 +844,15 @@ namespace KcpProject
                 Array.Copy(buf, readIndex, newbytes, 0, newbytes.Length);
                 ByteBuffer buffer = new ByteBuffer(newbytes.Length);
                 buffer.WriteBytes(newbytes);
-                buffer.isPool = this.isPool;
+                buffer.isPool = isPool;
                 return buffer;
             }
             return new ByteBuffer(16);
         }
 
         /// <summary>
-        /// 深度复制，具有与原对象相同的数据，不改变原对象的数据，包括已读数据
+        /// Deep copy, with the same data as the original object,
+        /// without changing the data of the original object, including the read data
         /// </summary>
         /// <returns></returns>
         public object Clone()
@@ -1138,31 +863,24 @@ namespace KcpProject
             }
             ByteBuffer newBuf = new ByteBuffer(buf)
             {
-                capacity = this.capacity,
-                readIndex = this.readIndex,
-                writeIndex = this.writeIndex,
-                markReadIndex = this.markReadIndex,
-                markWirteIndex = this.markWirteIndex,
-                isPool = this.isPool
+                capacity = capacity,
+                readIndex = readIndex,
+                writeIndex = writeIndex,
+                markReadIndex = markReadIndex,
+                markWirteIndex = markWirteIndex,
+                isPool = isPool
             };
             return newBuf;
         }
 
-        /// <summary>
-        /// 遍历所有的字节数据
-        /// </summary>
-        /// <param name="action"></param>
         public void ForEach(Action<byte> action)
         {
-            for (int i = 0; i < this.ReadableBytes; i++)
+            for (int i = 0; i < ReadableBytes; i++)
             {
-                action.Invoke(this.buf[i]);
+                action.Invoke(buf[i]);
             }
         }
 
-        /// <summary>
-        /// 清空此对象，但保留字节缓存数组（空数组）
-        /// </summary>
         public void Clear()
         {
             readIndex = 0;
@@ -1172,9 +890,6 @@ namespace KcpProject
             capacity = buf.Length;
         }
 
-        /// <summary>
-        /// 释放对象，清除字节缓存数组，如果此对象为可池化，那么调用此方法将会把此对象推入到池中等待下次调用
-        /// </summary>
         public void Dispose()
         {
             if (isPool)
@@ -1183,7 +898,7 @@ namespace KcpProject
                 {
                     if (pool.Count < poolMaxCount)
                     {
-                        this.Clear();
+                        Clear();
                         pool.Add(this);
                         return;
                     }

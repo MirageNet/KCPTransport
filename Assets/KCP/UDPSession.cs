@@ -2,15 +2,15 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 
-namespace KcpProject
+namespace KCPTransport
 {
     class UDPSession
     {
-        private Socket mSocket = null;
-        private KCP mKCP = null;
+        Socket mSocket = null;
+        KCP mKCP = null;
 
-        private ByteBuffer mRecvBuffer = ByteBuffer.Allocate(1024 * 32);
-        private uint mNextUpdateTime = 0;
+        readonly ByteBuffer mRecvBuffer = ByteBuffer.Allocate(1024 * 32);
+        uint mNextUpdateTime = 0;
 
         public bool IsConnected { get { return mSocket != null && mSocket.Connected; } }
         public bool WriteDelay { get; set; }
@@ -24,7 +24,7 @@ namespace KcpProject
             IPHostEntry hostEntry = Dns.GetHostEntry(host);
             if (hostEntry.AddressList.Length == 0)
             {
-                throw new Exception("Unable to resolve host: " + host);
+                throw new ArgumentException("Unable to resolve host: " + host);
             }
             IPAddress endpoint = hostEntry.AddressList[0];
             mSocket = new Socket(endpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
@@ -51,7 +51,7 @@ namespace KcpProject
             }
         }
 
-        private void rawSend(byte[] data, int length)
+        void rawSend(byte[] data, int length)
         {
             if (mSocket != null)
             {

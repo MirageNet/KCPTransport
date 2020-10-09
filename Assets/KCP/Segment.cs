@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace KcpProject
+namespace KCPTransport
 {
 
     // KCP Segment Definition
