@@ -964,10 +964,7 @@ namespace KCPTransport
             if (nodelay_ > 0)
             {
                 nodelay = (uint)nodelay_;
-                if (nodelay_ != 0)
-                    rx_minrto = IKCP_RTO_NDL;
-                else
-                    rx_minrto = IKCP_RTO_MIN;
+                rx_minrto = IKCP_RTO_NDL;
             }
 
             if (interval_ >= 0)
