@@ -53,10 +53,7 @@ namespace KCPTransport
 
         void rawSend(byte[] data, int length)
         {
-            if (mSocket != null)
-            {
-                mSocket.Send(data, length, SocketFlags.None);
-            }
+            mSocket?.Send(data, length, SocketFlags.None);
         }
 
         public int Send(byte[] data, int index, int length)
