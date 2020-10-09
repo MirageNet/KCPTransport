@@ -888,8 +888,8 @@ namespace KCPTransport
             return 0;
         }
 
-        // fastest: ikcp_nodelay(kcp, 1, 20, 2, 1)
-        // nodelay: 0:disable(default), 1:enable
+        // turbo mode: SetNoDelay(1, 20, 2, 1)
+        // normal mode: SetNoDelay(0, 40, 0, 0)
         // interval: internal update timer interval in millisec, default is 100ms
         // resend: 0:disable fast resend(default), 1:enable fast resend
         // nc: 0:normal congestion control(default), 1:disable congestion control
