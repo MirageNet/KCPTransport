@@ -6,11 +6,11 @@ namespace KCPTransport
 {
     class UDPSession
     {
-        Socket mSocket = null;
-        KCP mKCP = null;
+        Socket mSocket;
+        KCP mKCP;
 
         readonly ByteBuffer mRecvBuffer = ByteBuffer.Allocate(1024 * 32);
-        uint mNextUpdateTime = 0;
+        uint mNextUpdateTime;
 
         public bool IsConnected { get { return mSocket != null && mSocket.Connected; } }
         public bool WriteDelay { get; set; }
