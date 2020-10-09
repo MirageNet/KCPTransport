@@ -60,9 +60,8 @@ namespace KCPTransport
         int reserved;
         readonly Action<byte[], int> output; // buffer, size
 
-        // send windowd & recv window
-        public uint SndWnd { get; private set; }
-        public uint RcvWnd { get; private set; }
+        public uint SendWindowMax { get; private set; }
+        public uint ReceiveWindowMax { get; private set; }
         public uint RmtWnd { get; private set; }
         public uint Mss { get; private set; }
 
@@ -77,8 +76,8 @@ namespace KCPTransport
         public KCP(uint conv_, Action<byte[], int> output_)
         {
             conv = conv_;
-            SndWnd = IKCP_WND_SND;
-            RcvWnd = IKCP_WND_RCV;
+            SendWindowMax = IKCP_WND_SND;
+            ReceiveWindowMax = IKCP_WND_RCV;
             RmtWnd = IKCP_WND_RCV;
             mtu = IKCP_MTU_DEF;
             Mss = mtu - IKCP_OVERHEAD;
@@ -137,7 +136,7 @@ namespace KCPTransport
             if (peekSize > length)
                 return -2;
 
-            bool fastRecover = (rcv_queue.Count >= RcvWnd);
+            bool fastRecover = (rcv_queue.Count >= ReceiveWindowMax);
 
             // merge fragment.
             int count = 0;
@@ -163,7 +162,7 @@ namespace KCPTransport
             count = 0;
             foreach (Segment seg in rcv_buf)
             {
-                if (seg.sn == rcv_nxt && rcv_queue.Count + count < RcvWnd)
+                if (seg.sn == rcv_nxt && rcv_queue.Count + count < ReceiveWindowMax)
                 {
                     rcv_queue.Add(seg);
                     rcv_nxt++;
@@ -181,7 +180,7 @@ namespace KCPTransport
             }
 
             // fast recover
-            if (rcv_queue.Count < RcvWnd && fastRecover)
+            if (rcv_queue.Count < ReceiveWindowMax && fastRecover)
             {
                 // ready to send back IKCP_CMD_WINS in ikcp_flush
                 // tell remote my window size
@@ -344,7 +343,7 @@ namespace KCPTransport
         bool ParseData(Segment newseg)
         {
             uint sn = newseg.sn;
-            if (sn >= rcv_nxt + RcvWnd || sn < rcv_nxt)
+            if (sn >= rcv_nxt + ReceiveWindowMax || sn < rcv_nxt)
                 return true;
 
             int n = rcv_buf.Count - 1;
@@ -378,7 +377,7 @@ namespace KCPTransport
             int count = 0;
             foreach (Segment seg in rcv_buf)
             {
-                if (seg.sn == rcv_nxt && rcv_queue.Count + count < RcvWnd)
+                if (seg.sn == rcv_nxt && rcv_queue.Count + count < ReceiveWindowMax)
                 {
                     rcv_nxt++;
                     count++;
@@ -468,7 +467,7 @@ namespace KCPTransport
                 }
                 else if (IKCP_CMD_PUSH == cmd)
                 {
-                    if (sn < rcv_nxt + RcvWnd)
+                    if (sn < rcv_nxt + ReceiveWindowMax)
                     {
                         AckPush(sn, ts);
                         if (sn >= rcv_nxt)
@@ -563,8 +562,8 @@ namespace KCPTransport
 
         ushort WndUnused()
         {
-            if (rcv_queue.Count < RcvWnd)
-                return (ushort)(RcvWnd - rcv_queue.Count);
+            if (rcv_queue.Count < ReceiveWindowMax)
+                return (ushort)(ReceiveWindowMax - rcv_queue.Count);
             return 0;
         }
 
@@ -665,7 +664,7 @@ namespace KCPTransport
             probe = 0;
 
             // calculate window size
-            uint cwnd_ = Math.Min(SndWnd, RmtWnd);
+            uint cwnd_ = Math.Min(SendWindowMax, RmtWnd);
             if (0 == nocwnd)
                 cwnd_ = Math.Min(cwnd, cwnd_);
 
@@ -921,10 +920,10 @@ namespace KCPTransport
         public int WndSize(int sndwnd, int rcvwnd)
         {
             if (sndwnd > 0)
-                SndWnd = (uint)sndwnd;
+                SendWindowMax = (uint)sndwnd;
 
             if (rcvwnd > 0)
-                RcvWnd = (uint)rcvwnd;
+                ReceiveWindowMax = (uint)rcvwnd;
             return 0;
         }
 

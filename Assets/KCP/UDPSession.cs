@@ -62,7 +62,7 @@ namespace KCPTransport
                 return -1;
 
             int waitsnd = mKCP.WaitSnd;
-            if (waitsnd < mKCP.SndWnd && waitsnd < mKCP.RmtWnd)
+            if (waitsnd < mKCP.SendWindowMax && waitsnd < mKCP.RmtWnd)
             {
                 int sendBytes = 0;
                 do
@@ -73,7 +73,7 @@ namespace KCPTransport
                 } while (sendBytes < length);
 
                 waitsnd = mKCP.WaitSnd;
-                if (waitsnd >= mKCP.SndWnd || waitsnd >= mKCP.RmtWnd || !WriteDelay)
+                if (waitsnd >= mKCP.SendWindowMax || waitsnd >= mKCP.RmtWnd || !WriteDelay)
                 {
                     mKCP.Flush(false);
                 }
