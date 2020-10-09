@@ -941,7 +941,7 @@ namespace KCPTransport
         // change MTU size, default is 1400
         public int SetMtu(int mtu_)
         {
-            if (mtu_ < 50 || mtu_ < IKCP_OVERHEAD)
+            if (mtu_ < 50)
                 return -1;
             if (reserved >= (int)(mtu - IKCP_OVERHEAD) || reserved < 0)
                 return -1;
