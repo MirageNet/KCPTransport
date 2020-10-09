@@ -6,18 +6,18 @@ namespace KCPTransport
     // KCP Segment Definition
     internal class Segment
     {
-        internal uint conv = 0;
-        internal uint cmd = 0;
-        internal uint frg = 0;
-        internal uint wnd = 0;
-        internal uint ts = 0;
-        internal uint sn = 0;
-        internal uint una = 0;
-        internal uint rto = 0;
-        internal uint xmit = 0;
-        internal uint resendts = 0;
-        internal uint fastack = 0;
-        internal uint acked = 0;
+        internal uint conv;
+        internal uint cmd;
+        internal uint frg;
+        internal uint wnd;
+        internal uint ts;
+        internal uint sn;
+        internal uint una;
+        internal uint rto;
+        internal uint xmit;
+        internal uint resendts;
+        internal uint fastack;
+        internal uint acked;
         internal ByteBuffer data;
 
         private static Stack<Segment> msSegmentPool = new Stack<Segment>(32);
