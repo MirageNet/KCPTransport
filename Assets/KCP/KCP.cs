@@ -50,11 +50,11 @@ namespace KCPTransport
 
         int fastresend;
         int nocwnd; int stream;
-        readonly List<Segment> snd_queue = new List<Segment>(16);
-        readonly List<Segment> rcv_queue = new List<Segment>(16);
-        readonly List<Segment> snd_buf = new List<Segment>(16);
-        readonly List<Segment> rcv_buf = new List<Segment>(16);
-        readonly List<ackItem> acklist = new List<ackItem>(16);
+        readonly List<Segment> sendQueue = new List<Segment>(16);
+        readonly List<Segment> receiveQueue = new List<Segment>(16);
+        readonly List<Segment> sendBuffer = new List<Segment>(16);
+        readonly List<Segment> receiveBuffer = new List<Segment>(16);
+        readonly List<ackItem> ackList = new List<ackItem>(16);
 
         byte[] buffer;
         int reserved;
@@ -66,7 +66,7 @@ namespace KCPTransport
         public uint Mss { get; private set; }
 
         // get how many packet is waiting to be sent
-        public int WaitSnd { get { return snd_buf.Count + snd_queue.Count; } } 
+        public int WaitSnd { get { return sendBuffer.Count + sendQueue.Count; } } 
 
         // internal time.
         public uint CurrentMS => (uint)DateTime.Now.Subtract(refTime).TotalMilliseconds;
@@ -94,17 +94,17 @@ namespace KCPTransport
         public int PeekSize()
         {
 
-            if (0 == rcv_queue.Count) return -1;
+            if (0 == receiveQueue.Count) return -1;
 
-            Segment seq = rcv_queue[0];
+            Segment seq = receiveQueue[0];
 
             if (0 == seq.frg) return seq.data.ReadableBytes;
 
-            if (rcv_queue.Count < seq.frg + 1) return -1;
+            if (receiveQueue.Count < seq.frg + 1) return -1;
 
             int length = 0;
 
-            foreach (Segment item in rcv_queue)
+            foreach (Segment item in receiveQueue)
             {
                 length += item.data.ReadableBytes;
                 if (0 == item.frg)
@@ -136,12 +136,12 @@ namespace KCPTransport
             if (peekSize > length)
                 return -2;
 
-            bool fastRecover = (rcv_queue.Count >= ReceiveWindowMax);
+            bool fastRecover = (receiveQueue.Count >= ReceiveWindowMax);
 
             // merge fragment.
             int count = 0;
             int n = index;
-            foreach (Segment seg in rcv_queue)
+            foreach (Segment seg in receiveQueue)
             {
                 // copy fragment data into buffer.
                 Buffer.BlockCopy(seg.data.RawBuffer, seg.data.ReaderIndex, buffer, n, seg.data.ReadableBytes);
@@ -155,16 +155,16 @@ namespace KCPTransport
 
             if (count > 0)
             {
-                rcv_queue.RemoveRange(0, count);
+                receiveQueue.RemoveRange(0, count);
             }
 
             // move available data from rcv_buf -> rcv_queue
             count = 0;
-            foreach (Segment seg in rcv_buf)
+            foreach (Segment seg in receiveBuffer)
             {
-                if (seg.sn == rcv_nxt && rcv_queue.Count + count < ReceiveWindowMax)
+                if (seg.sn == rcv_nxt && receiveQueue.Count + count < ReceiveWindowMax)
                 {
-                    rcv_queue.Add(seg);
+                    receiveQueue.Add(seg);
                     rcv_nxt++;
                     count++;
                 }
@@ -176,11 +176,11 @@ namespace KCPTransport
 
             if (count > 0)
             {
-                rcv_buf.RemoveRange(0, count);
+                receiveBuffer.RemoveRange(0, count);
             }
 
             // fast recover
-            if (rcv_queue.Count < ReceiveWindowMax && fastRecover)
+            if (receiveQueue.Count < ReceiveWindowMax && fastRecover)
             {
                 // ready to send back IKCP_CMD_WINS in ikcp_flush
                 // tell remote my window size
@@ -202,10 +202,10 @@ namespace KCPTransport
 
             if (stream != 0)
             {
-                int n = snd_queue.Count;
+                int n = sendQueue.Count;
                 if (n > 0)
                 {
-                    Segment seg = snd_queue[n - 1];
+                    Segment seg = sendQueue[n - 1];
                     if (seg.data.ReadableBytes < Mss)
                     {
                         int capacity = (int)(Mss - seg.data.ReadableBytes);
@@ -240,7 +240,7 @@ namespace KCPTransport
                 length -= size;
 
                 seg.frg = (stream == 0 ? (byte)(count - i - 1) : (byte)0);
-                snd_queue.Add(seg);
+                sendQueue.Add(seg);
             }
 
             return 0;
@@ -280,14 +280,14 @@ namespace KCPTransport
 
         void ShrinkBuf()
         {
-            snd_una = snd_buf.Count > 0 ? snd_buf[0].sn : snd_nxt;
+            snd_una = sendBuffer.Count > 0 ? sendBuffer[0].sn : snd_nxt;
         }
 
         void ParseAck(uint sn)
         {
             if (sn < snd_una || sn >= snd_nxt) return;
 
-            foreach (Segment seg in snd_buf)
+            foreach (Segment seg in sendBuffer)
             {
                 if (sn == seg.sn)
                 {
@@ -308,7 +308,7 @@ namespace KCPTransport
             if (sn < snd_una || sn >= snd_nxt)
                 return;
 
-            foreach (Segment seg in snd_buf)
+            foreach (Segment seg in sendBuffer)
             {
                 if (sn < seg.sn)
                     break;
@@ -320,7 +320,7 @@ namespace KCPTransport
         void ParseUna(uint una)
         {
             int count = 0;
-            foreach (Segment seg in snd_buf)
+            foreach (Segment seg in sendBuffer)
             {
                 if (una >seg.sn)
                 {
@@ -332,12 +332,12 @@ namespace KCPTransport
             }
 
             if (count > 0)
-                snd_buf.RemoveRange(0, count);
+                sendBuffer.RemoveRange(0, count);
         }
 
         void AckPush(uint sn, uint ts)
         {
-            acklist.Add(new ackItem { sn = sn, ts = ts });
+            ackList.Add(new ackItem { sn = sn, ts = ts });
         }
 
         bool ParseData(Segment newseg)
@@ -346,12 +346,12 @@ namespace KCPTransport
             if (sn >= rcv_nxt + ReceiveWindowMax || sn < rcv_nxt)
                 return true;
 
-            int n = rcv_buf.Count - 1;
+            int n = receiveBuffer.Count - 1;
             int insert_idx = 0;
             bool repeat = false;
             for (int i = n; i >= 0; i--)
             {
-                Segment seg = rcv_buf[i];
+                Segment seg = receiveBuffer[i];
                 if (seg.sn == sn)
                 {
                     repeat = true;
@@ -368,16 +368,16 @@ namespace KCPTransport
             if (!repeat)
             {
                 if (insert_idx == n + 1)
-                    rcv_buf.Add(newseg);
+                    receiveBuffer.Add(newseg);
                 else
-                    rcv_buf.Insert(insert_idx, newseg);
+                    receiveBuffer.Insert(insert_idx, newseg);
             }
 
             // move available data from rcv_buf -> rcv_queue
             int count = 0;
-            foreach (Segment seg in rcv_buf)
+            foreach (Segment seg in receiveBuffer)
             {
-                if (seg.sn == rcv_nxt && rcv_queue.Count + count < ReceiveWindowMax)
+                if (seg.sn == rcv_nxt && receiveQueue.Count + count < ReceiveWindowMax)
                 {
                     rcv_nxt++;
                     count++;
@@ -391,8 +391,8 @@ namespace KCPTransport
             if (count > 0)
             {
                 for (int i = 0; i < count; i++)
-                    rcv_queue.Add(rcv_buf[i]);
-                rcv_buf.RemoveRange(0, count);
+                    receiveQueue.Add(receiveBuffer[i]);
+                receiveBuffer.RemoveRange(0, count);
             }
             return repeat;
         }
@@ -552,7 +552,7 @@ namespace KCPTransport
             }
 
             // ack immediately
-            if (ackNoDelay && acklist.Count > 0)
+            if (ackNoDelay && ackList.Count > 0)
             {
                 Flush(true);
             }
@@ -562,8 +562,8 @@ namespace KCPTransport
 
         ushort WndUnused()
         {
-            if (rcv_queue.Count < ReceiveWindowMax)
-                return (ushort)(ReceiveWindowMax - rcv_queue.Count);
+            if (receiveQueue.Count < ReceiveWindowMax)
+                return (ushort)(ReceiveWindowMax - receiveQueue.Count);
             return 0;
         }
 
@@ -596,18 +596,18 @@ namespace KCPTransport
             };
 
             // flush acknowledges
-            for (int i = 0; i < acklist.Count; i++)
+            for (int i = 0; i < ackList.Count; i++)
             {
                 makeSpace(KCP.IKCP_OVERHEAD);
-                ackItem ack = acklist[i];
-                if (ack.sn >= rcv_nxt || acklist.Count - 1 == i)
+                ackItem ack = ackList[i];
+                if (ack.sn >= rcv_nxt || ackList.Count - 1 == i)
                 {
                     seg.sn = ack.sn;
                     seg.ts = ack.ts;
                     writeIndex += seg.Encode(buffer, writeIndex);
                 }
             }
-            acklist.Clear();
+            ackList.Clear();
 
             // flash remain ack segments
             if (ackOnly)
@@ -670,23 +670,23 @@ namespace KCPTransport
 
             // sliding window, controlled by snd_nxt && sna_una+cwnd
             int newSegsCount = 0;
-            for (int k = 0; k < snd_queue.Count; k++)
+            for (int k = 0; k < sendQueue.Count; k++)
             {
                 if (snd_nxt >= snd_una + cwnd_)
                     break;
 
-                Segment newseg = snd_queue[k];
+                Segment newseg = sendQueue[k];
                 newseg.conv = conv;
                 newseg.cmd = IKCP_CMD_PUSH;
                 newseg.sn = snd_nxt;
-                snd_buf.Add(newseg);
+                sendBuffer.Add(newseg);
                 snd_nxt++;
                 newSegsCount++;
             }
 
             if (newSegsCount > 0)
             {
-                snd_queue.RemoveRange(0, newSegsCount);
+                sendQueue.RemoveRange(0, newSegsCount);
             }
 
             // calculate resent
@@ -698,9 +698,9 @@ namespace KCPTransport
             ulong change = 0; ulong lostSegs = 0;
             int minrto = (int)interval;
 
-            for (int k = 0; k < snd_buf.Count; k++)
+            for (int k = 0; k < sendBuffer.Count; k++)
             {
-                Segment segment = snd_buf[k];
+                Segment segment = sendBuffer[k];
                 bool needSend = false;
                 if (segment.acked == 1)
                     continue;
@@ -854,7 +854,7 @@ namespace KCPTransport
 
             int tm_flush_ = Utils.TimeDiff(ts_flush_, current);
 
-            foreach (Segment seg in snd_buf)
+            foreach (Segment seg in sendBuffer)
             {
                 int diff = Utils.TimeDiff(seg.resendts, current);
                 if (diff <= 0)
