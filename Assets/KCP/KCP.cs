@@ -475,7 +475,6 @@ namespace KCPTransport
             int offset = index;
             uint latest = 0;
             int flag = 0;
-            ulong inSegs = 0;
 
             while (true)
             {
@@ -567,7 +566,6 @@ namespace KCPTransport
                     return -3;
                 }
 
-                inSegs++;
                 offset += (int)length;
             }
 
