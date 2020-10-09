@@ -202,10 +202,10 @@ namespace KCPTransport
 
             if (stream != 0)
             {
-                int n = sendQueue.Count;
-                if (n > 0)
+                int sendQueueSize = sendQueue.Count;
+                if (sendQueueSize > 0)
                 {
-                    Segment seg = sendQueue[n - 1];
+                    Segment seg = sendQueue[sendQueueSize - 1];
                     if (seg.data.ReadableBytes < Mss)
                     {
                         int capacity = (int)(Mss - seg.data.ReadableBytes);
@@ -224,12 +224,13 @@ namespace KCPTransport
             if (length <= Mss)
                 count = 1;
             else
-                count = (int)(((length) + Mss - 1) / Mss);
+                count = (int)((length + Mss - 1) / Mss);
 
             if (count > 255) return -2;
 
             if (count == 0) count = 1;
 
+            // fragment
             for (int i = 0; i < count; i++)
             {
                 int size = Math.Min(length, (int)Mss);
@@ -274,8 +275,8 @@ namespace KCPTransport
                 }
             }
 
-            int rto = (int)(rx_srtt + Math.Max(interval, rx_rttval << 2));
-            rx_rto = Utils.Clamp((uint)rto, rx_minrto, IKCP_RTO_MAX);
+            uint rto = rx_srtt + Math.Max(interval, rx_rttval << 2);
+            rx_rto = Utils.Clamp(rto, rx_minrto, IKCP_RTO_MAX);
         }
 
         void ShrinkBuf()
