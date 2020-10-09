@@ -11,8 +11,8 @@ namespace KCPTransport
         int markReadIndex;
         int markWirteIndex;
 
-        static List<ByteBuffer> pool = new List<ByteBuffer>();
-        static int poolMaxCount = 200;
+        static readonly List<ByteBuffer> pool = new List<ByteBuffer>();
+        static readonly int poolMaxCount = 200;
 
         bool isPool;
 
