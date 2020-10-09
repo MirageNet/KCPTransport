@@ -36,7 +36,7 @@ namespace KCPTransport
             // fast:    false, 30, 2, 1
             // fast2:   false, 20, 2, 1
             // fast3:   false, 10, 2, 1
-            mKCP.NoDelay(false, 30, 2, 1);
+            mKCP.SetNoDelay(false, 30, 2, 1);
             mKCP.SetStreamMode(true);
             mRecvBuffer.Clear();
         }

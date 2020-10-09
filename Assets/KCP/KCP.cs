@@ -893,7 +893,7 @@ namespace KCPTransport
         // interval: internal update timer interval in millisec, default is 100ms
         // resend: 0:disable fast resend(default), 1:enable fast resend
         // nc: 0:normal congestion control(default), 1:disable congestion control
-        public int NoDelay(bool nodelay_, int interval_, int resend_, int nc_)
+        public void SetNoDelay(bool nodelay_, int interval_, int resend_, int nc_)
         {
             if (nodelay_)
             {
@@ -915,8 +915,6 @@ namespace KCPTransport
 
             if (nc_ >= 0)
                 nocwnd = nc_;
-
-            return 0;
         }
 
         // set maximum window size: sndwnd=32, rcvwnd=32 by default
