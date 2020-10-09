@@ -146,12 +146,7 @@ namespace KCPTransport
             }
 
             // there's data to be received
-            if (mRecvBuffer.ReadableBytes > 0)
-            {
-                return Recv(data, index, length);
-            }
-
-            return 0;
+            return mRecvBuffer.ReadableBytes > 0 ? Recv(data, index, length) : 0;
         }
 
         public void Update()
