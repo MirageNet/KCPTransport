@@ -37,7 +37,7 @@ namespace Mirror.KCP
         {
             _server = new Server();
 
-            await _server.Start(_bindAddress, _port);
+            await _server.Start(_port);
         }
 
         /// <summary>
@@ -75,8 +75,10 @@ namespace Mirror.KCP
         /// <returns>The connection to a client</returns>
         public override async Task<IConnection> AcceptAsync()
         {
+            /*
             try
             {
+                
                 Socket handler = await _server.AcceptAsync();
 
                 if (handler is null)
@@ -95,7 +97,8 @@ namespace Mirror.KCP
             {
                 // expected,  the connection was closed
                 return null;
-            }
+            }*/
+            return null;
         }
 
         /// <summary>
