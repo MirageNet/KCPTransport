@@ -44,7 +44,7 @@ namespace KCPTransport
         uint rx_rto; uint rx_minrto;
         uint cwnd; uint probe;
         uint interval; uint ts_flush;
-        uint nodelay; bool updated;
+        bool noDelay; bool updated;
         uint ts_probe; uint probe_wait;
         uint incr;
 
@@ -730,7 +730,7 @@ namespace KCPTransport
                 else if (current >= segment.resendts) // RTO
                 {
                     needSend = true;
-                    if (nodelay == 0)
+                    if (!noDelay)
                         segment.rto += rx_rto;
                     else
                         segment.rto += rx_rto / 2;
@@ -893,12 +893,11 @@ namespace KCPTransport
         // interval: internal update timer interval in millisec, default is 100ms
         // resend: 0:disable fast resend(default), 1:enable fast resend
         // nc: 0:normal congestion control(default), 1:disable congestion control
-        public int NoDelay(int nodelay_, int interval_, int resend_, int nc_)
+        public int NoDelay(bool nodelay_, int interval_, int resend_, int nc_)
         {
-
-            if (nodelay_ > 0)
+            if (nodelay_)
             {
-                nodelay = (uint)nodelay_;
+                noDelay = nodelay_;
                 rx_minrto = IKCP_RTO_NDL;
             }
 

@@ -32,11 +32,11 @@ namespace KCPTransport
             RemoteAddress = (IPEndPoint)mSocket.RemoteEndPoint;
             LocalAddress = (IPEndPoint)mSocket.LocalEndPoint;
             mKCP = new KCP((uint)(new Random().Next(1, int.MaxValue)), rawSend);
-            // normal:  0, 40, 2, 1
-            // fast:    0, 30, 2, 1
-            // fast2:   1, 20, 2, 1
-            // fast3:   1, 10, 2, 1
-            mKCP.NoDelay(0, 30, 2, 1);
+            // normal:  false, 40, 2, 1
+            // fast:    false, 30, 2, 1
+            // fast2:   false, 20, 2, 1
+            // fast3:   false, 10, 2, 1
+            mKCP.NoDelay(false, 30, 2, 1);
             mKCP.SetStreamMode(true);
             mRecvBuffer.Clear();
         }
