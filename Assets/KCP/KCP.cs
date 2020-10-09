@@ -346,10 +346,7 @@ namespace KCPTransport
 
         void ShrinkBuf()
         {
-            if (snd_buf.Count > 0)
-                snd_una = snd_buf[0].sn;
-            else
-                snd_una = snd_nxt;
+            snd_una = snd_buf.Count > 0 ? snd_buf[0].sn : snd_nxt;
         }
 
         void ParseAck(uint sn)
