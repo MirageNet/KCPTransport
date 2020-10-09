@@ -917,14 +917,13 @@ namespace KCPTransport
         }
 
         // set maximum window size: sndwnd=32, rcvwnd=32 by default
-        public int WndSize(int sndwnd, int rcvwnd)
+        public void SetWindowSize(int sndwnd, int rcvwnd)
         {
             if (sndwnd > 0)
                 SendWindowMax = (uint)sndwnd;
 
             if (rcvwnd > 0)
                 ReceiveWindowMax = (uint)rcvwnd;
-            return 0;
         }
 
         public bool ReserveBytes(int reservedSize)
