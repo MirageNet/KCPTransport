@@ -761,7 +761,7 @@ namespace KCPTransport
 
             // check for retransmissions
             current = CurrentMS;
-            ulong change = 0; ulong lostSegs = 0; ulong fastRetransSegs = 0; ulong earlyRetransSegs = 0;
+            ulong change = 0; ulong lostSegs = 0;
             int minrto = (int)interval;
 
             for (int k = 0; k < snd_buf.Count; k++)
@@ -783,7 +783,6 @@ namespace KCPTransport
                     segment.rto = rx_rto;
                     segment.resendts = current + segment.rto;
                     change++;
-                    fastRetransSegs++;
                 }
                 else if (segment.fastack > 0 && newSegsCount == 0) // early retransmit
                 {
@@ -792,7 +791,6 @@ namespace KCPTransport
                     segment.rto = rx_rto;
                     segment.resendts = current + segment.rto;
                     change++;
-                    earlyRetransSegs++;
                 }
                 else if (current >= segment.resendts) // RTO
                 {
