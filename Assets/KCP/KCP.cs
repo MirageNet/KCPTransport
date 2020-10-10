@@ -49,7 +49,7 @@ namespace KCPTransport
         uint incr;
 
         int fastresend;
-        int nocwnd; int stream;
+        int nocwnd; bool streamEnabled;
         readonly List<Segment> sendQueue = new List<Segment>(16);
         readonly List<Segment> receiveQueue = new List<Segment>(16);
         readonly List<Segment> sendBuffer = new List<Segment>(16);
@@ -200,7 +200,7 @@ namespace KCPTransport
         {
             if (0 == length) return -1;
 
-            if (stream != 0)
+            if (streamEnabled)
             {
                 int sendQueueSize = sendQueue.Count;
                 if (sendQueueSize > 0)
@@ -240,7 +240,7 @@ namespace KCPTransport
                 index += size;
                 length -= size;
 
-                seg.frg = (stream == 0 ? (byte)(count - i - 1) : (byte)0);
+                seg.frg = (!streamEnabled ? (byte)(count - i - 1) : 0U);
                 sendQueue.Add(seg);
             }
 
