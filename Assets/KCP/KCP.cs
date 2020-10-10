@@ -94,11 +94,11 @@ namespace KCPTransport
         public int PeekSize()
         {
 
-            if (0 == receiveQueue.Count) return -1;
+            if (receiveQueue.Count == 0) return -1;
 
             Segment seq = receiveQueue[0];
 
-            if (0 == seq.frg) return seq.data.ReadableBytes;
+            if (seq.frg == 0) return seq.data.ReadableBytes;
 
             if (receiveQueue.Count < seq.frg + 1) return -1;
 
@@ -107,7 +107,7 @@ namespace KCPTransport
             foreach (Segment item in receiveQueue)
             {
                 length += item.data.ReadableBytes;
-                if (0 == item.frg)
+                if (item.frg == 0)
                     break;
             }
 
@@ -150,7 +150,7 @@ namespace KCPTransport
                 count++;
                 uint fragment = seg.frg;
                 Segment.Put(seg);
-                if (0 == fragment) break;
+                if (fragment == 0) break;
             }
 
             if (count > 0)
@@ -198,7 +198,7 @@ namespace KCPTransport
         // user/upper level send, returns below zero for error
         public int Send(byte[] buffer, int index, int length)
         {
-            if (0 == length) return -1;
+            if (length == 0) return -1;
 
             if (streamEnabled)
             {
@@ -618,10 +618,10 @@ namespace KCPTransport
 
             uint current = 0;
             // probe window size (if remote window size equals zero)
-            if (0 == RmtWnd)
+            if (RmtWnd == 0)
             {
                 current = CurrentMS;
-                if (0 == probe_wait)
+                if (probe_wait == 0)
                 {
                     probe_wait = IKCP_PROBE_INIT;
                     ts_probe = current + probe_wait;
@@ -665,7 +665,7 @@ namespace KCPTransport
 
             // calculate window size
             uint cwnd_ = Math.Min(SendWindowMax, RmtWnd);
-            if (0 == nocwnd)
+            if (nocwnd == 0)
                 cwnd_ = Math.Min(cwnd, cwnd_);
 
             // sliding window, controlled by snd_nxt && sna_una+cwnd

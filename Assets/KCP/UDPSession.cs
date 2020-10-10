@@ -154,7 +154,7 @@ namespace KCPTransport
             if (mSocket == null)
                 return;
 
-            if (0 == mNextUpdateTime || mKCP.CurrentMS >= mNextUpdateTime)
+            if (mNextUpdateTime == 0 || mKCP.CurrentMS >= mNextUpdateTime)
             {
                 mKCP.Update();
                 mNextUpdateTime = mKCP.Check();
