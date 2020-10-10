@@ -938,7 +938,7 @@ namespace KCPTransport
 
         public void SetStreamMode(bool enabled)
         {
-            stream = enabled ? 1 : 0;
+            streamEnabled = enabled;
         }
     }
 }
