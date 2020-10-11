@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Mirror.KCP
 {
-    class ByteBuffer 
+    class ByteBuffer : IDisposable
     {
         int readIndex;
         int writeIndex;
