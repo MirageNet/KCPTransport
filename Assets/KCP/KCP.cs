@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace KCPTransport
 {
@@ -83,7 +84,7 @@ namespace KCPTransport
             return 4;
         }
 
-        private static readonly DateTime refTime = DateTime.Now;
+        private static readonly Stopwatch refTime = new Stopwatch();
 
         static uint Clamp(uint value, uint lower, uint upper)
         {
@@ -135,7 +136,7 @@ namespace KCPTransport
         public int WaitSnd { get { return snd_buf.Count + snd_queue.Count; } } 
 
         // internal time.
-        public uint CurrentMS => (uint)DateTime.Now.Subtract(refTime).TotalMilliseconds;
+        public uint CurrentMS => (uint)refTime.ElapsedMilliseconds;
 
         // create a new kcp control object, 'conv' must equal in two endpoint
         // from the same connection.
@@ -154,6 +155,7 @@ namespace KCPTransport
             ssthresh = IKCP_THRESH_INIT;
             buffer = new byte[mtu];
             output = output_;
+            refTime.Start();
         }
 
         // check the size of next message in the recv queue
