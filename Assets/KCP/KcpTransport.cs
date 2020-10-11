@@ -56,12 +56,6 @@ namespace Mirror.KCP
                 var endPoint = new IPEndPoint(IPAddress.Any, 0);
                 while (true)
                 {
-                    /*while (listener != null && listener.Available > 0)
-                    {
-                        byte[] data = listener.Receive(ref endPoint);
-                        RawInput(endPoint, data);
-                    }*/
-
                     UdpReceiveResult result = await listener.ReceiveAsync();
                     // send it to the proper connection
                     RawInput(result.RemoteEndPoint, result.Buffer);

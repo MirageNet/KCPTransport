@@ -40,6 +40,7 @@ namespace Mirror.KCP
             // send a greeting and see if the server replies
             await SendAsync(KcpTransport.Hello);
             var stream = new MemoryStream();
+
             if (!await ReceiveAsync(stream))
             {
                 throw new SocketException((int)SocketError.SocketError);
