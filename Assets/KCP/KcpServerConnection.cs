@@ -27,12 +27,16 @@ namespace Mirror.KCP
         {
             // Send a greeting during handshake
             var memoryStream = new MemoryStream();
+            Debug.Log("Server send hello");
             await SendAsync(KcpTransport.Hello);
 
+            Debug.Log("Server waiting for hello");
             if (!await ReceiveAsync(memoryStream))
             {
+                Debug.Log("Server did not get anything");
                 throw new SocketException((int)SocketError.SocketError);
             }
+            Debug.Log("Server received hello");
         }
     }
 }
