@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -10,6 +11,9 @@ namespace Mirror.KCP
 {
     public class KcpServerConnection : KcpConnection
     {
+        // hand shake message
+        internal static readonly ArraySegment<byte> Hello = new ArraySegment<byte>(new byte[] { 0 });
+
         public KcpServerConnection(UdpClient udpClient, IPEndPoint remoteEndpoint) 
         {
             this.udpClient = udpClient;
@@ -28,7 +32,7 @@ namespace Mirror.KCP
         {
             // Send a greeting during handshake
             var memoryStream = new MemoryStream();
-            await SendAsync(KcpTransport.Hello);
+            await SendAsync(Hello);
 
             if (!await ReceiveAsync(memoryStream))
             {

@@ -19,9 +19,6 @@ namespace Mirror.KCP
         readonly Dictionary<IPEndPoint, KcpServerConnection> connectedClients = new Dictionary<IPEndPoint, KcpServerConnection>();
         readonly Channel<KcpServerConnection> acceptedConnections = Channel.CreateSingleConsumerUnbounded<KcpServerConnection>();
 
-        // hand shake message
-        internal static readonly ArraySegment<byte> Hello = new ArraySegment<byte>(new byte[] { 0 });
-
         public override IEnumerable<string> Scheme => new[] { "kcp" };
 
         /// <summary>
@@ -84,6 +81,7 @@ namespace Mirror.KCP
         /// </summary>
         public override void Disconnect()
         {
+            listener?.Client?.Disconnect(false);
             listener?.Close();
         }
 

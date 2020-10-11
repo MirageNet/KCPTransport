@@ -9,6 +9,9 @@ namespace Mirror.KCP
 {
     public class KcpClientConnection : KcpConnection
     {
+        // hand shake message
+        internal static readonly ArraySegment<byte> Hello = new ArraySegment<byte>(new byte[] { 0 });
+
         /// <summary>
         /// Client connection,  does not share the UDP client with anyone
         /// so we can set up our own read loop
@@ -39,7 +42,7 @@ namespace Mirror.KCP
         async Task Handshake()
         {
             // send a greeting and see if the server replies
-            await SendAsync(KcpTransport.Hello);
+            await SendAsync(Hello);
             var stream = new MemoryStream();
             if (!await ReceiveAsync(stream))
             {

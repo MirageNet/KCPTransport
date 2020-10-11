@@ -75,10 +75,10 @@ namespace Mirror.KCP
         {
             int result = kcp.Send(data.Array, data.Offset, data.Count);
 
-            await WaitForAck();
-
             if (result < 0)
                 throw new SocketException((int)SocketError.SocketError);
+
+            await WaitForAck();
         }
 
         /// <summary>
