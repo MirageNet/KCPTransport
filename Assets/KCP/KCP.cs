@@ -134,7 +134,7 @@ namespace Mirror.KCP
             if (peekSize > length)
                 return -2;
 
-            bool fastRecover = (receiveQueue.Count >= ReceiveWindowMax);
+            bool fastRecover = receiveQueue.Count >= ReceiveWindowMax;
 
             // merge fragment.
             int count = 0;
@@ -240,7 +240,7 @@ namespace Mirror.KCP
                 index += size;
                 length -= size;
 
-                seg.frg = (!streamEnabled ? (byte)(count - i - 1) : 0U);
+                seg.frg = streamEnabled ? 0U : (byte)(count - i - 1);
                 sendQueue.Add(seg);
             }
         }
@@ -543,7 +543,7 @@ namespace Mirror.KCP
                             if (incr < _mss)
                                 incr = _mss;
 
-                            incr += (_mss * _mss) / incr + (_mss) / 16;
+                            incr += _mss * _mss / incr + _mss / 16;
 
                             if ((cwnd + 1) * _mss <= incr)
                             {
