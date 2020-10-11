@@ -931,14 +931,13 @@ namespace Mirror.KCP
                 ReceiveWindowMax = Math.Max(recvWindow, IKCP_WND_RCV);
         }
 
-        public bool ReserveBytes(uint reservedSize)
+        public void ReserveBytes(uint reservedSize)
         {
             if (reservedSize >= (mtu - IKCP_OVERHEAD))
-                return false;
+                throw new ArgumentException("reservedSize must be lower than MTU.");
 
             reserved = reservedSize;
             Mss = mtu - IKCP_OVERHEAD - reservedSize;
-            return true;
         }
 
         public void SetStreamMode(bool enabled)
