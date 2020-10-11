@@ -92,7 +92,6 @@ namespace Mirror.KCP
         // check the size of next message in the recv queue
         public int PeekSize()
         {
-
             if (receiveQueue.Count == 0) return -1;
 
             Segment seq = receiveQueue[0];
@@ -602,7 +601,7 @@ namespace Mirror.KCP
             // flush acknowledges
             for (int i = 0; i < ackList.Count; i++)
             {
-                makeSpace(KCP.IKCP_OVERHEAD);
+                makeSpace(IKCP_OVERHEAD);
                 ackItem ack = ackList[i];
                 if (ack.serialNumber >= rcv_nxt || ackList.Count - 1 == i)
                 {
