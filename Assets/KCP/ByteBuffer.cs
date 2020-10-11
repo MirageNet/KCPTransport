@@ -134,20 +134,6 @@ namespace KCPTransport
         }
 
         /// <summary>
-        /// Flip the byte array, if the local byte sequence is a high byte sequence, flip to convert to a low byte sequence
-        /// </summary>
-        /// <param name="bytes">Byte array to be converted to high-endian</param>
-        /// <returns>Byte array of low byte sequence</returns>
-        byte[] Flip(byte[] bytes)
-        {
-            //if (BitConverter.IsLittleEndian)
-            //{
-            //    Array.Reverse(bytes);
-            //}
-            return bytes;
-        }
-
-        /// <summary>
         /// Determine the size of the internal byte buffer array
         /// </summary>
         /// <param name="currLen">Current capacity</param>
@@ -252,12 +238,12 @@ namespace KCPTransport
 
         public void WriteShort(short value)
         {
-            WriteBytes(Flip(BitConverter.GetBytes(value)));
+            WriteBytes(BitConverter.GetBytes(value));
         }
 
         public void WriteUshort(ushort value)
         {
-            WriteBytes(Flip(BitConverter.GetBytes(value)));
+            WriteBytes(BitConverter.GetBytes(value));
         }
 
         public void WriteInt(int value)
@@ -270,27 +256,27 @@ namespace KCPTransport
             //}
             //Array.Reverse(array);
             //Write(array);
-            WriteBytes(Flip(BitConverter.GetBytes(value)));
+            WriteBytes(BitConverter.GetBytes(value));
         }
 
         public void WriteUint(uint value)
         {
-            WriteBytes(Flip(BitConverter.GetBytes(value)));
+            WriteBytes(BitConverter.GetBytes(value));
         }
 
         public void WriteLong(long value)
         {
-            WriteBytes(Flip(BitConverter.GetBytes(value)));
+            WriteBytes(BitConverter.GetBytes(value));
         }
 
         public void WriteUlong(ulong value)
         {
-            WriteBytes(Flip(BitConverter.GetBytes(value)));
+            WriteBytes(BitConverter.GetBytes(value));
         }
 
         public void WriteFloat(float value)
         {
-            WriteBytes(Flip(BitConverter.GetBytes(value)));
+            WriteBytes(BitConverter.GetBytes(value));
         }
 
         public void WriteByte(byte value)
@@ -310,17 +296,17 @@ namespace KCPTransport
 
         public void WriteDouble(double value)
         {
-            WriteBytes(Flip(BitConverter.GetBytes(value)));
+            WriteBytes(BitConverter.GetBytes(value));
         }
 
         public void WriteChar(char value)
         {
-            WriteBytes(Flip(BitConverter.GetBytes(value)));
+            WriteBytes(BitConverter.GetBytes(value));
         }
 
         public void WriteBoolean(bool value)
         {
-            WriteBytes(Flip(BitConverter.GetBytes(value)));
+            WriteBytes(BitConverter.GetBytes(value));
         }
 
         public byte ReadByte()
@@ -340,7 +326,7 @@ namespace KCPTransport
         {
             byte[] bytes = new byte[len];
             Array.Copy(RawBuffer, index, bytes, 0, len);
-            return Flip(bytes);
+            return bytes;
         }
 
         /// <summary>
