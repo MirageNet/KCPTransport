@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace KCPTransport
 {
-    class ByteBuffer : ICloneable
+    class ByteBuffer 
     {
         int readIndex = 0;
         int writeIndex = 0;
@@ -814,29 +814,6 @@ namespace KCPTransport
                 return buffer;
             }
             return new ByteBuffer(16);
-        }
-
-        /// <summary>
-        /// Deep copy, with the same data as the original object,
-        /// without changing the data of the original object, including the read data
-        /// </summary>
-        /// <returns></returns>
-        public object Clone()
-        {
-            if (RawBuffer == null)
-            {
-                return new ByteBuffer(16);
-            }
-            var newBuf = new ByteBuffer(RawBuffer)
-            {
-                Capacity = Capacity,
-                readIndex = readIndex,
-                writeIndex = writeIndex,
-                markReadIndex = markReadIndex,
-                markWirteIndex = markWirteIndex,
-                isPool = isPool
-            };
-            return newBuf;
         }
 
         public void ForEach(Action<byte> action)
