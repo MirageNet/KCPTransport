@@ -57,7 +57,7 @@ namespace Mirror.KCP
         readonly List<ackItem> ackList = new List<ackItem>(16);
 
         byte[] buffer;
-        int reserved;
+        uint reserved;
         readonly Action<byte[], int> output; // buffer, size
 
         public uint SendWindowMax { get; private set; }
@@ -581,14 +581,14 @@ namespace Mirror.KCP
             seg.wnd = WndUnused();
             seg.una = rcv_nxt;
 
-            int writeIndex = reserved;
+            int writeIndex = (int)reserved;
 
             Action<int> makeSpace = (space) =>
             {
                 if (writeIndex + space > mtu)
                 {
                     output(buffer, writeIndex);
-                    writeIndex = reserved;
+                    writeIndex = (int)reserved;
                 }
             };
 
@@ -883,7 +883,7 @@ namespace Mirror.KCP
         {
             if (mtu < 50)
                 throw new ArgumentException("MTU must be higher than 50.");
-            if (reserved >= (int)(mtu - IKCP_OVERHEAD) || reserved < 0)
+            if (reserved >= (int)(mtu - IKCP_OVERHEAD))
                 throw new ArgumentException("Please increase the MTU value so it is higher than reserved bytes.");
 
             buffer = new byte[mtu];
@@ -931,13 +931,13 @@ namespace Mirror.KCP
                 ReceiveWindowMax = Math.Max(recvWindow, IKCP_WND_RCV);
         }
 
-        public bool ReserveBytes(int reservedSize)
+        public bool ReserveBytes(uint reservedSize)
         {
-            if (reservedSize >= (mtu - IKCP_OVERHEAD) || reservedSize < 0)
+            if (reservedSize >= (mtu - IKCP_OVERHEAD))
                 return false;
 
             reserved = reservedSize;
-            Mss = mtu - IKCP_OVERHEAD - (uint)(reservedSize);
+            Mss = mtu - IKCP_OVERHEAD - reservedSize;
             return true;
         }
 
