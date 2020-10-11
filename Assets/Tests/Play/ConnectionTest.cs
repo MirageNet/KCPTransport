@@ -36,6 +36,8 @@ namespace Mirror.KCP
             transport.Disconnect();
             clientConnection?.Disconnect();
             serverConnection?.Disconnect();
+
+            GameObject.Destroy(transport);
         }
 
         // A Test behaves as an ordinary method
