@@ -32,8 +32,8 @@ namespace KCPTransport
 
         internal struct ackItem
         {
-            internal uint sn;
-            internal uint ts;
+            internal uint serialNumber;
+            internal uint timestamp;
         }
 
         // kcp members.
@@ -337,7 +337,7 @@ namespace KCPTransport
 
         void AckPush(uint sn, uint ts)
         {
-            ackList.Add(new ackItem { sn = sn, ts = ts });
+            ackList.Add(new ackItem { serialNumber = sn, timestamp = ts });
         }
 
         bool ParseData(Segment newseg)
@@ -600,10 +600,10 @@ namespace KCPTransport
             {
                 makeSpace(KCP.IKCP_OVERHEAD);
                 ackItem ack = ackList[i];
-                if (ack.sn >= rcv_nxt || ackList.Count - 1 == i)
+                if (ack.serialNumber >= rcv_nxt || ackList.Count - 1 == i)
                 {
-                    seg.sn = ack.sn;
-                    seg.ts = ack.ts;
+                    seg.sn = ack.serialNumber;
+                    seg.ts = ack.timestamp;
                     writeIndex += seg.Encode(buffer, writeIndex);
                 }
             }
