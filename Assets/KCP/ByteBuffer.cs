@@ -430,7 +430,7 @@ namespace KCPTransport
             if (ReadableBytes < len)
                 throw new Exception("no more readable bytes");
 
-            var buffer = new byte[len];
+            byte[] buffer = new byte[len];
             Array.Copy(RawBuffer, index, buffer, 0, len);
             readIndex += len;
             return buffer;
@@ -650,25 +650,6 @@ namespace KCPTransport
             SHORT = 2,
             INT = 3,
             LONG = 4
-        }
-
-        void WriteValue(int value, DataType type)
-        {
-            switch (type)
-            {
-                case DataType.BYTE:
-                    WriteByte(value);
-                    break;
-                case DataType.SHORT:
-                    WriteShort((short)value);
-                    break;
-                case DataType.LONG:
-                    WriteLong(value);
-                    break;
-                default:
-                    WriteInt(value);
-                    break;
-            }
         }
 
         int ReadValue(DataType type)
