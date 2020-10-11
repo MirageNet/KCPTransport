@@ -16,16 +16,15 @@ namespace Mirror.KCP
     {
         #region Fields
 
-        protected readonly UdpClient udpClient;
+        protected UdpClient udpClient;
         protected IPEndPoint remoteEndpoint;
         protected KCPTransport.KCP kcp;
         protected bool open;
 
         #endregion
 
-        protected KcpConnection(UdpClient udpClient)
+        protected KcpConnection()
         {
-            this.udpClient = udpClient;
         }
 
         #region KCP layer

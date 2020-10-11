@@ -18,7 +18,7 @@ namespace Mirror.KCP
         /// </summary>
         /// <param name="host"></param>
         /// <param name="port"></param>
-        public KcpClientConnection() : base(new UdpClient(AddressFamily.InterNetworkV6)) 
+        public KcpClientConnection() : base() 
         {
         }
 
@@ -31,7 +31,7 @@ namespace Mirror.KCP
 
             remoteEndpoint = new IPEndPoint(ipAddress[0], port);
 
-            udpClient.Client.DualMode = true;
+            udpClient = new UdpClient(remoteEndpoint.AddressFamily);
             udpClient.Connect(remoteEndpoint);
 
             open = true;

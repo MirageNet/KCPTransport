@@ -10,8 +10,9 @@ namespace Mirror.KCP
 {
     public class KcpServerConnection : KcpConnection
     {
-        public KcpServerConnection(UdpClient udpClient, IPEndPoint remoteEndpoint) : base(udpClient)
+        public KcpServerConnection(UdpClient udpClient, IPEndPoint remoteEndpoint) 
         {
+            this.udpClient = udpClient;
             this.remoteEndpoint = remoteEndpoint;
             open = true;
             SetupKcp();
