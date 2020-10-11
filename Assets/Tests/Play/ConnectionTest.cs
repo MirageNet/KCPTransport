@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 using Cysharp.Threading.Tasks;
@@ -17,7 +17,6 @@ namespace Mirror.KCP
         KcpTransport transport;
         IConnection clientConnection;
         IConnection serverConnection;
-
 
         [UnitySetUp]
         public IEnumerator Setup() => UniTask.ToCoroutine(async () =>
@@ -52,7 +51,6 @@ namespace Mirror.KCP
             Assert.That(clientConnection, Is.Not.Null);
             Assert.That(serverConnection, Is.Not.Null);
         });
-
 
         [UnityTest]
         public IEnumerator CanSendData() => UniTask.ToCoroutine(async () =>
