@@ -7,6 +7,7 @@ using System.IO;
 
 using UnityEngine;
 using Random = UnityEngine.Random;
+using System.Threading.Tasks;
 
 namespace Mirror.KCP
 {
@@ -44,8 +45,8 @@ namespace Mirror.KCP
         [UnityTest]
         public IEnumerator CanEstablishConnections() => UniTask.ToCoroutine(async () =>
         {
-            var acceptTask = transport.AcceptAsync();
-            var connectTask = transport.ConnectAsync(new Uri("kcp://localhost:7896"));
+            Task<IConnection> acceptTask = transport.AcceptAsync();
+            Task<IConnection> connectTask = transport.ConnectAsync(new Uri("kcp://localhost:7896"));
 
             serverConnection = await acceptTask;
             clientConnection = await connectTask;
@@ -57,8 +58,8 @@ namespace Mirror.KCP
         [UnityTest]
         public IEnumerator CanSendData() => UniTask.ToCoroutine(async () =>
         {
-            var acceptTask = transport.AcceptAsync();
-            var connectTask = transport.ConnectAsync(new Uri("kcp://localhost:7896"));
+            Task<IConnection> acceptTask = transport.AcceptAsync();
+            Task<IConnection> connectTask = transport.ConnectAsync(new Uri("kcp://localhost:7896"));
 
             serverConnection = await acceptTask;
             clientConnection = await connectTask;
