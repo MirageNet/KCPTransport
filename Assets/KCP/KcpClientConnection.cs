@@ -37,14 +37,23 @@ namespace Mirror.KCP
             SetupKcp();
             _ = ReceiveLoopAsync();
 
+            await Handshake();
+        }
+
+        private async Task Handshake()
+        {
+
             // send a greeting and see if the server replies
             await SendAsync(KcpTransport.Hello);
+            Debug.Log("Client sent hello");
             var stream = new MemoryStream();
-
+            Debug.Log("Client waiting for hello");
             if (!await ReceiveAsync(stream))
             {
+                Debug.LogError("Client did not get hello");
                 throw new SocketException((int)SocketError.SocketError);
             }
+            Debug.Log("Client got hello");
         }
 
         private async Task ReceiveLoopAsync()
@@ -54,7 +63,6 @@ namespace Mirror.KCP
                 while (udpClient.Client != null)
                 {
                     UdpReceiveResult result = await udpClient.ReceiveAsync();
-                    Debug.Log("Client received a message");
                     // send it to the proper connection
                     RawInput(result.Buffer);
                 }
@@ -82,7 +90,6 @@ namespace Mirror.KCP
 
         protected override void RawSend(byte[] data, int length)
         {
-            Debug.Log($"Client Sending a message of {length} to {remoteEndpoint}");
             udpClient.Send(data, length);
         }
     }
