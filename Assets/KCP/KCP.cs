@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Mirror.KCP
 {
@@ -28,7 +29,7 @@ namespace Mirror.KCP
         public const int IKCP_PROBE_LIMIT = 120000; // up to 120 secs to probe window
         public const int IKCP_SN_OFFSET = 12;
 
-        private static readonly DateTime refTime = DateTime.Now;
+        private static readonly Stopwatch refTime = new Stopwatch();
 
         internal struct ackItem
         {
@@ -69,7 +70,7 @@ namespace Mirror.KCP
         public int WaitSnd { get { return sendBuffer.Count + sendQueue.Count; } } 
 
         // internal time.
-        public uint CurrentMS => (uint)DateTime.Now.Subtract(refTime).TotalMilliseconds;
+        public uint CurrentMS => (uint)refTime.ElapsedMilliseconds;
 
         public bool StreamEnabled { get; set; }
 
@@ -89,6 +90,7 @@ namespace Mirror.KCP
             ssthresh = IKCP_THRESH_INIT;
             buffer = new byte[mtu];
             output = output_;
+            refTime.Start();
         }
 
         // check the size of next message in the recv queue
