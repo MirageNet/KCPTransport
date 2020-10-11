@@ -34,29 +34,28 @@ namespace Mirror.KCP
             kcp = new KCPTransport.KCP(0, RawSend);
             kcp.NoDelay(0, 10, 2, 1);
             kcp.SetStreamMode(true);
-            _ = Tick();
         }
 
-        private async UniTask Tick()
+        private async UniTask WaitForAck()
         {
             try
             {
-                while (open)
-                {
-                    kcp.Update();
-                    uint sleepTime = kcp.Check();
+                kcp.Update();
+                int check = (int)kcp.Check();
 
-                    if (sleepTime > 0)
-                    {
-                        await UniTask.Delay((int)sleepTime);
-                    }
+                while (check > 0 && open)
+                {
+                    await UniTask.Delay(check);
+                    kcp.Update();
+
+                    check = (int)kcp.Check();
                 }
             }
             catch (ObjectDisposedException)
             {
                 // fine,  socket was closed,  no more ticking needed
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Debug.LogException(ex);
             }
@@ -69,6 +68,9 @@ namespace Mirror.KCP
         internal void RawInput(byte[] buffer)
         {
             kcp.Input(buffer, 0, buffer.Length, true, false);
+
+            Debug.Log($"Check after input {kcp.Check()}");
+            _ = WaitForAck();
 
             if (isWaiting && kcp.PeekSize() > 0)
             {
@@ -84,14 +86,14 @@ namespace Mirror.KCP
 
         #region Implementation of IConnection
 
-        public Task SendAsync(ArraySegment<byte> data)
+        public async Task SendAsync(ArraySegment<byte> data)
         {
             int result = kcp.Send(data.Array, data.Offset, data.Count);
 
-            if (result < 0)
-                return Task.FromException(new SocketException((int)SocketError.SocketError));
+            await WaitForAck();
 
-            return Task.CompletedTask;
+            if (result < 0)
+                throw new SocketException((int)SocketError.SocketError);
         }
 
         /// <summary>

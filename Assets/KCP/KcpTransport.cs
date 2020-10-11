@@ -43,11 +43,15 @@ namespace Mirror.KCP
         /// <returns></returns>
         public override Task ListenAsync()
         {
+            Debug.Log("Server listen 1");
             listener = new UdpClient(AddressFamily.InterNetworkV6);
+            Debug.Log("Server listen 2");
             listener.Client.DualMode = true;
             listener.Client.Bind(new IPEndPoint(IPAddress.IPv6Any, Port));
+            Debug.Log("Server listen 3");
 
             _ = ReadLoop();
+            Debug.Log("Server listen 4");
             return Task.CompletedTask;
         }
 
@@ -59,6 +63,8 @@ namespace Mirror.KCP
                 while (listener.Client != null)
                 {
                     UdpReceiveResult result = await listener.ReceiveAsync();
+
+                    Debug.Log($"Server received raw message {result.Buffer.Length}");
                     // send it to the proper connection
                     RawInput(result.RemoteEndPoint, result.Buffer);
                 }

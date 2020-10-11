@@ -24,15 +24,20 @@ namespace Mirror.KCP
 
         internal async Task ConnectAsync(string host, ushort port)
         {
+
+            Debug.Log("Client connect 1");
             IPAddress[] ipAddress = await Dns.GetHostAddressesAsync(host);
 
+            Debug.Log("Client connect 2");
             if (ipAddress.Length < 1)
                 throw new SocketException((int)SocketError.HostNotFound);
 
             remoteEndpoint = new IPEndPoint(ipAddress[0], port);
 
+            Debug.Log("Client connect 3");
             udpClient = new UdpClient(remoteEndpoint.AddressFamily);
             udpClient.Connect(remoteEndpoint);
+            Debug.Log("Client connect 4");
 
             open = true;
 
@@ -44,14 +49,18 @@ namespace Mirror.KCP
 
         private async Task Handshake()
         {
-
+            Debug.Log("Client handshake 1");
             // send a greeting and see if the server replies
             await SendAsync(KcpTransport.Hello);
+            Debug.Log("Client handshake 2");
             var stream = new MemoryStream();
+            Debug.Log("Client handshake 3");
             if (!await ReceiveAsync(stream))
             {
+                Debug.Log("Client handshake 4");
                 throw new SocketException((int)SocketError.SocketError);
             }
+            Debug.Log("Client handshake 5");
         }
 
         private async Task ReceiveLoopAsync()
