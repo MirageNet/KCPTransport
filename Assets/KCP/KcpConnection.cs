@@ -59,7 +59,6 @@ namespace Mirror.KCP
         {
             kcp.Input(buffer, 0, buffer.Length, true, false);
 
-            Debug.Log($"Check after input {kcp.Check()}");
             _ = WaitForAck();
 
             if (isWaiting && kcp.PeekSize() > 0)
