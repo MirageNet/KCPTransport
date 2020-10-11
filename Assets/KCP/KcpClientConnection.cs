@@ -9,6 +9,9 @@ namespace Mirror.KCP
 {
     public class KcpClientConnection : KcpConnection
     {
+
+        readonly byte[] buffer = new byte[1500];
+
         /// <summary>
         /// Client connection,  does not share the UDP client with anyone
         /// so we can set up our own read loop
@@ -26,45 +29,35 @@ namespace Mirror.KCP
                 throw new SocketException((int)SocketError.HostNotFound);
 
             remoteEndpoint = new IPEndPoint(ipAddress[0], port);
-            udpClient = new UdpClient(remoteEndpoint.AddressFamily);
-            udpClient.Connect(remoteEndpoint);
-            open = true;
-
+            socket = new Socket(remoteEndpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+            socket.Connect(remoteEndpoint);
             SetupKcp();
-            _ = ReceiveLoopAsync();
+
+            ReceiveLoop();
 
             await Handshake();
         }
 
-        async Task ReceiveLoopAsync()
+        void ReceiveLoop()
         {
-            try
-            {
-                while (udpClient.Client != null)
-                {
-                    UdpReceiveResult result = await udpClient.ReceiveAsync();
-                    // send it to the proper connection
-                    RawInput(result.Buffer);
-                }
-            }
-            catch (ObjectDisposedException)
-            {
-                // connection was closed.  no problem
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-            }
+            socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref remoteEndpoint, ReceiveFrom, null);
+        }
+
+        private void ReceiveFrom(IAsyncResult ar)
+        {
+            int msgLength = socket.EndReceiveFrom(ar, ref remoteEndpoint);
+            RawInput(buffer, msgLength);
+            socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref remoteEndpoint, ReceiveFrom, null);
         }
 
         protected override void Dispose()
         {
-            udpClient.Close();
+            socket.Close();
         }
 
         protected override void RawSend(byte[] data, int length)
         {
-            udpClient.Send(data, length);
+            socket.Send(data, length, SocketFlags.None);
         }
     }
 }

@@ -11,12 +11,16 @@ namespace Mirror.KCP
 {
     public abstract class KcpConnection : IConnection
     {
-        protected UdpClient udpClient;
-        protected IPEndPoint remoteEndpoint;
+        protected Socket socket;
+        protected EndPoint remoteEndpoint;
         protected KCP kcp;
-        protected bool open;
+        private volatile bool open;
 
-        private int lastSend = 0;
+        // If we don't receive anything these many milliseconds
+        // then consider us disconnected
+        public const int TIMEOUT = 3000;
+
+        private volatile uint lastReceived = 0;
 
         internal static readonly ArraySegment<byte> Hello = new ArraySegment<byte>(new byte[] { 0 });
         private static readonly ArraySegment<byte> Goodby = new ArraySegment<byte>(new byte[] { 1 });
@@ -33,6 +37,8 @@ namespace Mirror.KCP
             // fast2:   true, 20, 2, 1
             // fast3:   true, 10, 2, 1
             kcp.SetNoDelay(false, 40, 2, 1);
+            open = true;
+
             _ = Tick();
         }
 
@@ -40,7 +46,9 @@ namespace Mirror.KCP
         {
             try
             {
-                while (open)
+                lastReceived = kcp.CurrentMS;
+
+                while (open && kcp.CurrentMS < lastReceived + TIMEOUT)
                 {
                     kcp.Update();
 
@@ -77,9 +85,11 @@ namespace Mirror.KCP
 
         readonly AutoResetUniTaskCompletionSource dataAvailable = AutoResetUniTaskCompletionSource.Create();
 
-        internal void RawInput(byte[] buffer)
+        internal void RawInput(byte[] buffer, int msgLength)
         {
-            kcp.Input(buffer, 0, buffer.Length, true, false);
+            kcp.Input(buffer, 0, msgLength, true, false);
+
+            lastReceived = kcp.CurrentMS;
 
             if (isWaiting && kcp.PeekSize() > 0)
             {
@@ -151,7 +161,7 @@ namespace Mirror.KCP
             var stream = new MemoryStream();
             if (!await ReceiveAsync(stream))
             {
-                throw new SocketException((int)SocketError.SocketError);
+                throw new Exception("Unable to establish connection, no message received");
             }
         }
 
@@ -163,8 +173,21 @@ namespace Mirror.KCP
             // send a disconnect message and disconnect
             if (open)
             {
-                _ = SendAsync(Goodby);
-                kcp.Flush(false);
+                try
+                {
+
+                    _ = SendAsync(Goodby);
+                    kcp.Flush(false);
+                }
+                catch (ObjectDisposedException)
+                {
+                    // this is normal when we stop the server
+                    // the socket is stopped so we can't send anything anymore
+                    // to the clients
+
+                    // the clients will eventually timeout and realize they
+                    // were disconnected
+                }
             }
             open = false;
 

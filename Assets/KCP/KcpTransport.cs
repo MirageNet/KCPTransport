@@ -10,17 +10,19 @@ namespace Mirror.KCP
 {
     public class KcpTransport : Transport
     {
-        UdpClient listener;
+        Socket socket;
 
         [Header("Transport Configuration")]
-        [SerializeField] public  ushort Port = 7777;
+        public ushort Port = 7777;
+
         [SerializeField] private string _bindAddress = "localhost";
 
-        readonly Dictionary<IPEndPoint, KcpServerConnection> connectedClients = new Dictionary<IPEndPoint, KcpServerConnection>();
+        readonly Dictionary<EndPoint, KcpServerConnection> connectedClients = new Dictionary<EndPoint, KcpServerConnection>();
         readonly Channel<KcpServerConnection> acceptedConnections = Channel.CreateSingleConsumerUnbounded<KcpServerConnection>();
 
         public override IEnumerable<string> Scheme => new[] { "kcp" };
 
+        readonly byte[] buffer = new byte[1500];
         /// <summary>
         ///     Open up the port and listen for connections
         ///     Use in servers.
@@ -29,50 +31,41 @@ namespace Mirror.KCP
         /// <returns></returns>
         public override Task ListenAsync()
         {
-            listener = new UdpClient(AddressFamily.InterNetworkV6);
-            listener.Client.DualMode = true;
-            listener.Client.Bind(new IPEndPoint(IPAddress.IPv6Any, Port));
-            _ = ReadLoop();
+            socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+            socket.DualMode = true;
+            socket.Bind(new IPEndPoint(IPAddress.IPv6Any, Port));
+
+            ReadLoop();
             return Task.CompletedTask;
         }
 
-        async Task ReadLoop()
+        private EndPoint newClientEP;
+        void ReadLoop()
         {
-            try
-            {
-                while (listener.Client != null)
-                {
-                    UdpReceiveResult result = await listener.ReceiveAsync();
-                    // send it to the proper connection
-                    RawInput(result.RemoteEndPoint, result.Buffer);
-                }
-            }
-            catch (ObjectDisposedException)
-            {
-                // the listener has been closed
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-            }
-            finally
-            {
-                listener.Close();
-            }
+            newClientEP = new IPEndPoint(IPAddress.IPv6Any, 0);
+            socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP, ReceiveFrom, null);
         }
 
-        void RawInput(IPEndPoint endpoint, byte[] data)
+        private void ReceiveFrom(IAsyncResult ar)
+        {
+            int msgLength = socket.EndReceiveFrom(ar, ref newClientEP);
+
+            RawInput(newClientEP, buffer, msgLength);
+            socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP, ReceiveFrom, null);
+        }
+
+        void RawInput(EndPoint endpoint, byte[] data, int msgLength)
         {
             // is this a new connection?                    
             if (!connectedClients.TryGetValue(endpoint, out KcpServerConnection connection))
             {
                 // add it to a queue
-                connection = new KcpServerConnection(listener, endpoint);
+                connection = new KcpServerConnection(socket, endpoint);
                 acceptedConnections.Writer.TryWrite(connection);
                 connectedClients.Add(endpoint, connection);
             }
 
-            connection.RawInput(data);
+            connection.RawInput(data, msgLength);
         }
 
         /// <summary>
@@ -80,7 +73,13 @@ namespace Mirror.KCP
         /// </summary>
         public override void Disconnect()
         {
-            listener?.Close();
+            // disconnect all connections and stop listening to the port
+            foreach (KcpServerConnection connection in connectedClients.Values)
+            {
+                connection.Disconnect();
+            }
+
+            socket?.Close();
         }
 
         /// <summary>

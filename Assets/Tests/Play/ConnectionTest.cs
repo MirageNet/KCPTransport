@@ -13,7 +13,7 @@ namespace Mirror.KCP
 {
     public class ConnectionTest
     {
-        public const int PORT = 7896;
+        public ushort port = 7896;
 
         KcpTransport transport;
         IConnection clientConnection;
@@ -22,29 +22,44 @@ namespace Mirror.KCP
         [UnitySetUp]
         public IEnumerator Setup() => UniTask.ToCoroutine(async () =>
         {
+            // each test goes in a different port
+            // that way the transports can take some time to cleanup
+            // without interfering with each other.
+            port++;
+
             var transportGo = new GameObject("kcpTransport", typeof(KcpTransport));
 
             transport = transportGo.GetComponent<KcpTransport>();
 
-            transport.Port = PORT;
+            transport.Port = port;
 
             await transport.ListenAsync();
 
             Task<IConnection> acceptTask = transport.AcceptAsync();
-            Task<IConnection> connectTask = transport.ConnectAsync(new Uri("kcp://localhost:7896"));
+            var uriBuilder = new UriBuilder()
+            {
+                Host = "localhost",
+                Scheme = "kcp",
+                Port = port
+            };
+
+            Task<IConnection> connectTask = transport.ConnectAsync(uriBuilder.Uri);
 
             serverConnection = await acceptTask;
             clientConnection = await connectTask;
         });
 
-        [TearDown]
-        public void TearDown()
+        [UnityTearDown]
+        public IEnumerator TearDown()
         {
             transport.Disconnect();
             clientConnection?.Disconnect();
             serverConnection?.Disconnect();
 
             UnityEngine.Object.Destroy(transport.gameObject);
+            // wait a frame so object will be destroyed
+
+            yield return null;
         }
 
         // A Test behaves as an ordinary method
@@ -88,5 +103,36 @@ namespace Mirror.KCP
 
             Assert.That(more, Is.False, "Receive should return false when the connection is disconnected");
         });
+
+        [UnityTest]
+        public IEnumerator DisconnectFromClient() => UniTask.ToCoroutine(async () =>
+        {
+            clientConnection.Disconnect();
+
+            var buffer = new MemoryStream();
+            bool more = await serverConnection.ReceiveAsync(buffer);
+
+            Assert.That(more, Is.False, "Receive should return false when the connection is disconnected");
+        });
+
+        [UnityTest]
+        public IEnumerator DisconnectServerFromIdle() => UniTask.ToCoroutine(async () =>
+        {
+            var buffer = new MemoryStream();
+            bool more = await serverConnection.ReceiveAsync(buffer);
+
+            Assert.That(more, Is.False, "After some time of no activity, the server should disconnect");
+        });
+
+        [UnityTest]
+        public IEnumerator DisconnectClientFromIdle() => UniTask.ToCoroutine(async () =>
+        {
+            // after certain amount of time with no messages, it should disconnect
+            var buffer = new MemoryStream();
+            bool more = await clientConnection.ReceiveAsync(buffer);
+
+            Assert.That(more, Is.False, "After some time of no activity, the client should disconnect");
+        });
+
     }
 }
