@@ -17,7 +17,7 @@ namespace KCPTransport
         internal uint xmit = 0;
         internal uint resendts = 0;
         internal uint fastack = 0;
-        internal uint acked = 0;
+        internal bool acked;
         internal ByteBuffer data;
 
         private static Stack<Segment> msSegmentPool = new Stack<Segment>(32);
@@ -80,7 +80,7 @@ namespace KCPTransport
             xmit = 0;
             resendts = 0;
             fastack = 0;
-            acked = 0;
+            acked = false;
 
             data.Clear();
             data.Dispose();

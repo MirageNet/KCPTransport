@@ -369,7 +369,7 @@ namespace KCPTransport
                     // and wait until `una` to delete this, then we don't
                     // have to shift the segments behind forward,
                     // which is an expensive operation for large window
-                    seg.acked = 1;
+                    seg.acked = true;
                     break;
                 }
                 if (sn < seg.sn)
@@ -778,7 +778,7 @@ namespace KCPTransport
             {
                 Segment segment = snd_buf[k];
                 bool needSend = false;
-                if (segment.acked == 1)
+                if (segment.acked)
                     continue;
                 if (segment.xmit == 0)  // initial transmit
                 {
