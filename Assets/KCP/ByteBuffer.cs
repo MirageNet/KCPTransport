@@ -5,7 +5,6 @@ namespace KCPTransport
 {
     class ByteBuffer : ICloneable
     {
-        byte[] buf;
         int readIndex = 0;
         int writeIndex = 0;
         int markReadIndex = 0;
@@ -19,7 +18,7 @@ namespace KCPTransport
 
         ByteBuffer(int capacity)
         {
-            buf = new byte[capacity];
+            RawBuffer = new byte[capacity];
             this.capacity = capacity;
             readIndex = 0;
             writeIndex = 0;
@@ -27,9 +26,9 @@ namespace KCPTransport
 
         ByteBuffer(byte[] bytes)
         {
-            buf = new byte[bytes.Length];
-            Array.Copy(bytes, 0, buf, 0, buf.Length);
-            capacity = buf.Length;
+            RawBuffer = new byte[bytes.Length];
+            Array.Copy(bytes, 0, RawBuffer, 0, RawBuffer.Length);
+            capacity = RawBuffer.Length;
             readIndex = 0;
             writeIndex = bytes.Length + 1;
         }
@@ -168,8 +167,8 @@ namespace KCPTransport
                     size = FixLength(futureLen) * 2;
                 }
                 byte[] newbuf = new byte[size];
-                Array.Copy(buf, 0, newbuf, 0, currLen);
-                buf = newbuf;
+                Array.Copy(RawBuffer, 0, newbuf, 0, currLen);
+                RawBuffer = newbuf;
                 capacity = size;
             }
             return futureLen;
@@ -194,14 +193,14 @@ namespace KCPTransport
                 else
                 {
                     // When space is insufficient, reallocate memory
-                    FixSizeAndReset(buf.Length, buf.Length + minBytes);
+                    FixSizeAndReset(RawBuffer.Length, RawBuffer.Length + minBytes);
                 }
             }
         }
 
         public void TrimReadedBytes()
         {
-            Buffer.BlockCopy(buf, readIndex, buf, 0, writeIndex - readIndex);
+            Buffer.BlockCopy(RawBuffer, readIndex, RawBuffer, 0, writeIndex - readIndex);
             writeIndex -= readIndex;
             readIndex = 0;
         }
@@ -217,9 +216,9 @@ namespace KCPTransport
             if (length <= 0 || startIndex < 0) return;
 
             int total = length + writeIndex;
-            int len = buf.Length;
+            int len = RawBuffer.Length;
             FixSizeAndReset(len, total);
-            Array.Copy(bytes, startIndex, buf, writeIndex, length);
+            Array.Copy(bytes, startIndex, RawBuffer, writeIndex, length);
             writeIndex = total;
         }
 
@@ -299,9 +298,9 @@ namespace KCPTransport
         public void WriteByte(byte value)
         {
             int afterLen = writeIndex + 1;
-            int len = buf.Length;
+            int len = RawBuffer.Length;
             FixSizeAndReset(len, afterLen);
-            buf[writeIndex] = value;
+            RawBuffer[writeIndex] = value;
             writeIndex = afterLen;
         }
 
@@ -328,7 +327,7 @@ namespace KCPTransport
 
         public byte ReadByte()
         {
-            byte b = buf[readIndex];
+            byte b = RawBuffer[readIndex];
             readIndex++;
             return b;
         }
@@ -342,7 +341,7 @@ namespace KCPTransport
         byte[] Get(int index, int len)
         {
             byte[] bytes = new byte[len];
-            Array.Copy(buf, index, bytes, 0, len);
+            Array.Copy(RawBuffer, index, bytes, 0, len);
             return Flip(bytes);
         }
 
@@ -434,14 +433,14 @@ namespace KCPTransport
                 throw new Exception("no more readable bytes");
 
             var buffer = new byte[len];
-            Array.Copy(buf, index, buffer, 0, len);
+            Array.Copy(RawBuffer, index, buffer, 0, len);
             readIndex += len;
             return buffer;
         }
 
         public byte GetByte(int index)
         {
-            return buf[index];
+            return RawBuffer[index];
         }
 
         public byte GetByte()
@@ -555,10 +554,10 @@ namespace KCPTransport
         public void DiscardReadBytes()
         {
             if (readIndex <= 0) return;
-            int len = buf.Length - readIndex;
+            int len = RawBuffer.Length - readIndex;
             byte[] newbuf = new byte[len];
-            Array.Copy(buf, readIndex, newbuf, 0, len);
-            buf = newbuf;
+            Array.Copy(RawBuffer, readIndex, newbuf, 0, len);
+            RawBuffer = newbuf;
             writeIndex -= readIndex;
             markReadIndex -= readIndex;
             if (markReadIndex < 0)
@@ -644,18 +643,12 @@ namespace KCPTransport
             }
         }
 
-        public byte[] RawBuffer
-        {
-            get
-            {
-                return buf;
-            }
-        }
+        public byte[] RawBuffer { get; private set; }
 
         public byte[] ToArray()
         {
             byte[] bytes = new byte[writeIndex - readIndex];
-            Array.Copy(buf, readIndex, bytes, 0, bytes.Length);
+            Array.Copy(RawBuffer, readIndex, bytes, 0, bytes.Length);
             return bytes;
         }
 
@@ -834,14 +827,14 @@ namespace KCPTransport
         /// <returns></returns>
         public ByteBuffer Copy()
         {
-            if (buf == null)
+            if (RawBuffer == null)
             {
                 return new ByteBuffer(16);
             }
             if (readIndex < writeIndex)
             {
                 byte[] newbytes = new byte[writeIndex - readIndex];
-                Array.Copy(buf, readIndex, newbytes, 0, newbytes.Length);
+                Array.Copy(RawBuffer, readIndex, newbytes, 0, newbytes.Length);
                 ByteBuffer buffer = new ByteBuffer(newbytes.Length);
                 buffer.WriteBytes(newbytes);
                 buffer.isPool = isPool;
@@ -857,11 +850,11 @@ namespace KCPTransport
         /// <returns></returns>
         public object Clone()
         {
-            if (buf == null)
+            if (RawBuffer == null)
             {
                 return new ByteBuffer(16);
             }
-            ByteBuffer newBuf = new ByteBuffer(buf)
+            ByteBuffer newBuf = new ByteBuffer(RawBuffer)
             {
                 capacity = capacity,
                 readIndex = readIndex,
@@ -877,7 +870,7 @@ namespace KCPTransport
         {
             for (int i = 0; i < ReadableBytes; i++)
             {
-                action.Invoke(buf[i]);
+                action.Invoke(RawBuffer[i]);
             }
         }
 
@@ -887,7 +880,7 @@ namespace KCPTransport
             writeIndex = 0;
             markReadIndex = 0;
             markWirteIndex = 0;
-            capacity = buf.Length;
+            capacity = RawBuffer.Length;
         }
 
         public void Dispose()
@@ -910,7 +903,7 @@ namespace KCPTransport
             markReadIndex = 0;
             markWirteIndex = 0;
             capacity = 0;
-            buf = null;
+            RawBuffer = null;
         }
     }
 }
