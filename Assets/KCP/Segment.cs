@@ -17,7 +17,7 @@ namespace Mirror.KCP
         internal uint xmit;
         internal uint resendts;
         internal uint fastack;
-        internal uint acked;
+        internal bool acked;
         internal ByteBuffer data;
 
         private static readonly Stack<Segment> msSegmentPool = new Stack<Segment>(32);
@@ -79,7 +79,7 @@ namespace Mirror.KCP
             xmit = 0;
             resendts = 0;
             fastack = 0;
-            acked = 0;
+            acked = false;
 
             data.Clear();
             data.Dispose();

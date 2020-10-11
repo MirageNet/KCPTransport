@@ -293,7 +293,7 @@ namespace Mirror.KCP
                     // and wait until `una` to delete this, then we don't
                     // have to shift the segments behind forward,
                     // which is an expensive operation for large window
-                    seg.acked = 1;
+                    seg.acked = true;
                     break;
                 }
                 if (sn < seg.sn)
@@ -705,7 +705,7 @@ namespace Mirror.KCP
             {
                 Segment segment = sendBuffer[k];
                 bool needSend = false;
-                if (segment.acked == 1)
+                if (segment.acked == true)
                     continue;
                 if (segment.xmit == 0)  // initial transmit
                 {
@@ -839,7 +839,7 @@ namespace Mirror.KCP
         // Important to reduce unnacessary ikcp_update invoking. use it to
         // schedule ikcp_update (eg. implementing an epoll-like mechanism,
         // or optimize ikcp_update when handling massive kcp connections)
-        public uint Check()
+        public int Check()
         {
             uint current = CurrentMS;
 
@@ -847,13 +847,13 @@ namespace Mirror.KCP
             int tm_packet = 0x7fffffff;
 
             if (!updated)
-                return current;
+                return 0;
 
             if (current >= ts_flush_ + 10000 || current < ts_flush_ - 10000)
                 ts_flush_ = current;
 
             if (current >= ts_flush_)
-                return current;
+                return 0;
 
             int tm_flush_ = Utils.TimeDiff(ts_flush_, current);
 
@@ -861,7 +861,7 @@ namespace Mirror.KCP
             {
                 int diff = Utils.TimeDiff(seg.resendts, current);
                 if (diff <= 0)
-                    return current;
+                    return 0;
                 if (diff < tm_packet)
                     tm_packet = diff;
             }
@@ -872,7 +872,10 @@ namespace Mirror.KCP
             if (minimal >= interval)
                 minimal = (int)interval;
 
-            return current + (uint)minimal;
+            // NOTE: Original KCP returns current time + delta
+            // I changed it to only return delta
+
+            return  minimal;
         }
 
         /// <summary>Change MTU (Maximum Transmission Unit) size. Default is 1400.</summary>
