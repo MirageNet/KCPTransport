@@ -1,22 +1,15 @@
-#region Statements
-
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-#endregion
-
 namespace Mirror.KCP
 {
     public class KcpTransport : Transport
     {
-        #region Fields
-
         UdpClient listener;
 
         [Header("Transport Configuration")]
@@ -29,11 +22,7 @@ namespace Mirror.KCP
         // hand shake message
         internal static readonly ArraySegment<byte> Hello = new ArraySegment<byte>(new byte[] { 0 });
 
-        #endregion
-
         public override IEnumerable<string> Scheme => new[] { "kcp" };
-
-        #region Server
 
         /// <summary>
         ///     Open up the port and listen for connections
@@ -50,7 +39,7 @@ namespace Mirror.KCP
             return Task.CompletedTask;
         }
 
-        private async Task ReadLoop()
+        async Task ReadLoop()
         {
             try
             {
@@ -76,7 +65,7 @@ namespace Mirror.KCP
             }
         }
 
-        private void RawInput(IPEndPoint endpoint, byte[] data)
+        void RawInput(IPEndPoint endpoint, byte[] data)
         {
             // is this a new connection?                    
             if (!connectedClients.TryGetValue(endpoint, out KcpServerConnection connection))
@@ -131,10 +120,6 @@ namespace Mirror.KCP
             }
         }
 
-        #endregion
-
-        #region Client
-
         /// <summary>
         ///     Determines if this transport is supported in the current platform
         /// </summary>
@@ -154,7 +139,5 @@ namespace Mirror.KCP
             await client.ConnectAsync(uri.Host, (ushort)uri.Port);
             return client;
         }
-
-        #endregion
     }
 }

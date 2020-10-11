@@ -1,5 +1,3 @@
-#region Statements
-
 using System;
 using System.IO;
 using System.Net;
@@ -8,26 +6,18 @@ using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-#endregion
-
 namespace Mirror.KCP
 {
     public abstract class KcpConnection : IConnection
     {
-        #region Fields
-
         protected UdpClient udpClient;
         protected IPEndPoint remoteEndpoint;
         protected KCPTransport.KCP kcp;
         protected bool open;
 
-        #endregion
-
         protected KcpConnection()
         {
         }
-
-        #region KCP layer
 
         protected void SetupKcp()
         {
@@ -81,10 +71,6 @@ namespace Mirror.KCP
         }
 
         protected abstract void RawSend(byte[] data, int length);
-
-        #endregion
-
-        #region Implementation of IConnection
 
         public async Task SendAsync(ArraySegment<byte> data)
         {
@@ -146,7 +132,5 @@ namespace Mirror.KCP
         {
             return remoteEndpoint;
         }
-
-        #endregion
     }
 }

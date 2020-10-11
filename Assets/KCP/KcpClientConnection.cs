@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -11,7 +9,6 @@ namespace Mirror.KCP
 {
     public class KcpClientConnection : KcpConnection
     {
-        #region Client
         /// <summary>
         /// Client connection,  does not share the UDP client with anyone
         /// so we can set up our own read loop
@@ -39,7 +36,7 @@ namespace Mirror.KCP
             await Handshake();
         }
 
-        private async Task Handshake()
+        async Task Handshake()
         {
             // send a greeting and see if the server replies
             await SendAsync(KcpTransport.Hello);
@@ -50,7 +47,7 @@ namespace Mirror.KCP
             }
         }
 
-        private async Task ReceiveLoopAsync()
+        async Task ReceiveLoopAsync()
         {
             try
             {
@@ -70,8 +67,6 @@ namespace Mirror.KCP
                 Debug.LogException(ex);
             }
         }
-        #endregion
-
 
         /// <summary>
         ///     Disconnect this connection
