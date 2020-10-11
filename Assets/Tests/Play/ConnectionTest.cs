@@ -29,6 +29,12 @@ namespace Mirror.KCP
             transport.Port = PORT;
 
             await transport.ListenAsync();
+
+            Task<IConnection> acceptTask = transport.AcceptAsync();
+            Task<IConnection> connectTask = transport.ConnectAsync(new Uri("kcp://localhost:7896"));
+
+            serverConnection = await acceptTask;
+            clientConnection = await connectTask;
         });
 
         [TearDown]
@@ -42,36 +48,22 @@ namespace Mirror.KCP
         }
 
         // A Test behaves as an ordinary method
-        [UnityTest]
-        public IEnumerator CanEstablishConnections() => UniTask.ToCoroutine(async () =>
+        [Test]
+        public void CanEstablishConnections()
         {
-            Task<IConnection> acceptTask = transport.AcceptAsync();
-            Task<IConnection> connectTask = transport.ConnectAsync(new Uri("kcp://localhost:7896"));
-
-            serverConnection = await acceptTask;
-            clientConnection = await connectTask;
-
             Assert.That(clientConnection, Is.Not.Null);
             Assert.That(serverConnection, Is.Not.Null);
-        });
+        }
 
         [UnityTest]
         public IEnumerator CanSendData() => UniTask.ToCoroutine(async () =>
         {
-            Task<IConnection> acceptTask = transport.AcceptAsync();
-            Task<IConnection> connectTask = transport.ConnectAsync(new Uri("kcp://localhost:7896"));
-
-            serverConnection = await acceptTask;
-            clientConnection = await connectTask;
-
             byte[] data = new byte[] { (byte)Random.Range(1, 255) };
             await clientConnection.SendAsync(new ArraySegment<byte>(data));
 
             var buffer = new MemoryStream();
             await serverConnection.ReceiveAsync(buffer);
             Assert.That(buffer.ToArray(), Is.EquivalentTo(data));
-
-            transport.Disconnect();
         });
     }
 }
