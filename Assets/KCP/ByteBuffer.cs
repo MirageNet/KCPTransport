@@ -9,8 +9,6 @@ namespace KCPTransport
         int writeIndex = 0;
         int markReadIndex = 0;
         int markWirteIndex = 0;
-        int capacity;
-
         static List<ByteBuffer> pool = new List<ByteBuffer>();
         static int poolMaxCount = 200;
 
@@ -19,7 +17,7 @@ namespace KCPTransport
         ByteBuffer(int capacity)
         {
             RawBuffer = new byte[capacity];
-            this.capacity = capacity;
+            this.Capacity = capacity;
             readIndex = 0;
             writeIndex = 0;
         }
@@ -28,7 +26,7 @@ namespace KCPTransport
         {
             RawBuffer = new byte[bytes.Length];
             Array.Copy(bytes, 0, RawBuffer, 0, RawBuffer.Length);
-            capacity = RawBuffer.Length;
+            Capacity = RawBuffer.Length;
             readIndex = 0;
             writeIndex = bytes.Length + 1;
         }
@@ -169,7 +167,7 @@ namespace KCPTransport
                 byte[] newbuf = new byte[size];
                 Array.Copy(RawBuffer, 0, newbuf, 0, currLen);
                 RawBuffer = newbuf;
-                capacity = size;
+                Capacity = size;
             }
             return futureLen;
         }
@@ -631,17 +629,11 @@ namespace KCPTransport
         {
             get
             {
-                return capacity - writeIndex;
+                return Capacity - writeIndex;
             }
         }
 
-        public int Capacity
-        {
-            get
-            {
-                return capacity;
-            }
-        }
+        public int Capacity { get; private set; }
 
         public byte[] RawBuffer { get; private set; }
 
@@ -856,7 +848,7 @@ namespace KCPTransport
             }
             ByteBuffer newBuf = new ByteBuffer(RawBuffer)
             {
-                capacity = capacity,
+                Capacity = Capacity,
                 readIndex = readIndex,
                 writeIndex = writeIndex,
                 markReadIndex = markReadIndex,
@@ -880,7 +872,7 @@ namespace KCPTransport
             writeIndex = 0;
             markReadIndex = 0;
             markWirteIndex = 0;
-            capacity = RawBuffer.Length;
+            Capacity = RawBuffer.Length;
         }
 
         public void Dispose()
@@ -902,7 +894,7 @@ namespace KCPTransport
             writeIndex = 0;
             markReadIndex = 0;
             markWirteIndex = 0;
-            capacity = 0;
+            Capacity = 0;
             RawBuffer = null;
         }
     }
