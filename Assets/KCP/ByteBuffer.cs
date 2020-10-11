@@ -9,7 +9,7 @@ namespace KCPTransport
         int writeIndex = 0;
         int markReadIndex = 0;
         int markWirteIndex = 0;
-        static List<ByteBuffer> pool = new List<ByteBuffer>();
+        static readonly List<ByteBuffer> pool = new List<ByteBuffer>();
         const int PoolMaxCount = 200;
 
         bool isPool = false;
