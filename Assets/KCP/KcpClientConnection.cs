@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -18,7 +18,7 @@ namespace Mirror.KCP
         /// </summary>
         /// <param name="host"></param>
         /// <param name="port"></param>
-        public KcpClientConnection() : base(new UdpClient()) 
+        public KcpClientConnection() : base(new UdpClient(AddressFamily.InterNetworkV6)) 
         {
         }
 
@@ -31,7 +31,9 @@ namespace Mirror.KCP
 
             remoteEndpoint = new IPEndPoint(ipAddress[0], port);
 
+            udpClient.Client.DualMode = true;
             udpClient.Connect(remoteEndpoint);
+
             open = true;
 
             SetupKcp();

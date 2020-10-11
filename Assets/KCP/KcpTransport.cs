@@ -43,7 +43,9 @@ namespace Mirror.KCP
         /// <returns></returns>
         public override Task ListenAsync()
         {
-            listener = new UdpClient(Port);
+            listener = new UdpClient(AddressFamily.InterNetworkV6);
+            listener.Client.DualMode = true;
+            listener.Client.Bind(new IPEndPoint(IPAddress.IPv6Any, Port));
 
             _ = ReadLoop();
             return Task.CompletedTask;
