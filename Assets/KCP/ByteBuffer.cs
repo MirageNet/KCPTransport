@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace KCPTransport
+namespace Mirror.KCP
 {
     class ByteBuffer : ICloneable
     {
