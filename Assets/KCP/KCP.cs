@@ -6,28 +6,28 @@ namespace Mirror.KCP
 {
     public class KCP
     {
-        public const int IKCP_RTO_NDL = 30;  // no delay min rto
-        public const int IKCP_RTO_MIN = 100; // normal min rto
-        public const int IKCP_RTO_DEF = 200;
-        public const int IKCP_RTO_MAX = 60000;
-        public const int IKCP_CMD_PUSH = 81; // cmd: push data
-        public const int IKCP_CMD_ACK = 82; // cmd: ack
-        public const int IKCP_CMD_WASK = 83; // cmd: window probe (ask)
-        public const int IKCP_CMD_WINS = 84; // cmd: window size (tell)
-        public const int IKCP_ASK_SEND = 1;  // need to send IKCP_CMD_WASK
-        public const int IKCP_ASK_TELL = 2;  // need to send IKCP_CMD_WINS
-        public const int IKCP_WND_SND = 32;
-        public const int IKCP_WND_RCV = 32;
-        public const int IKCP_MTU_DEF = 1400;
-        public const int IKCP_ACK_FAST = 3;
-        public const int IKCP_INTERVAL = 100;
-        public const int IKCP_OVERHEAD = 24;
-        public const int IKCP_DEADLINK = 20;
-        public const int IKCP_THRESH_INIT = 2;
-        public const int IKCP_THRESH_MIN = 2;
-        public const int IKCP_PROBE_INIT = 7000;   // 7 secs to probe window size
-        public const int IKCP_PROBE_LIMIT = 120000; // up to 120 secs to probe window
-        public const int IKCP_SN_OFFSET = 12;
+        public const int RTO_NDL = 30;  // no delay min rto
+        public const int RTO_MIN = 100; // normal min rto
+        public const int RTO_DEF = 200;
+        public const int RTO_MAX = 60000;
+        public const int CMD_PUSH = 81; // cmd: push data
+        public const int CMD_ACK = 82; // cmd: ack
+        public const int CMD_WASK = 83; // cmd: window probe (ask)
+        public const int CMD_WINS = 84; // cmd: window size (tell)
+        public const int ASK_SEND = 1;  // need to send CMD_WASK
+        public const int ASK_TELL = 2;  // need to send CMD_WINS
+        public const int WND_SND = 32;
+        public const int WND_RCV = 32;
+        public const int MTU_DEF = 1400;
+        public const int ACK_FAST = 3;
+        public const int INTERVAL = 100;
+        public const int OVERHEAD = 24;
+        public const int DEADLINK = 20;
+        public const int THRESH_INIT = 2;
+        public const int THRESH_MIN = 2;
+        public const int PROBE_INIT = 7000;   // 7 secs to probe window size
+        public const int PROBE_LIMIT = 120000; // up to 120 secs to probe window
+        public const int SN_OFFSET = 12;
 
         private static readonly Stopwatch refTime = new Stopwatch();
 
@@ -64,7 +64,7 @@ namespace Mirror.KCP
         public uint SendWindowMax { get; private set; }
         public uint ReceiveWindowMax { get; private set; }
         public uint RmtWnd { get; private set; }
-        public uint Mss => mtu - IKCP_OVERHEAD - reserved;
+        public uint Mss => mtu - OVERHEAD - reserved;
 
         // get how many packet is waiting to be sent
         public int WaitSnd { get { return sendBuffer.Count + sendQueue.Count; } } 
@@ -79,15 +79,15 @@ namespace Mirror.KCP
         public KCP(uint conv_, Action<byte[], int> output_)
         {
             conv = conv_;
-            SendWindowMax = IKCP_WND_SND;
-            ReceiveWindowMax = IKCP_WND_RCV;
-            RmtWnd = IKCP_WND_RCV;
-            mtu = IKCP_MTU_DEF;
-            rx_rto = IKCP_RTO_DEF;
-            rx_minrto = IKCP_RTO_MIN;
-            interval = IKCP_INTERVAL;
-            ts_flush = IKCP_INTERVAL;
-            ssthresh = IKCP_THRESH_INIT;
+            SendWindowMax = WND_SND;
+            ReceiveWindowMax = WND_RCV;
+            RmtWnd = WND_RCV;
+            mtu = MTU_DEF;
+            rx_rto = RTO_DEF;
+            rx_minrto = RTO_MIN;
+            interval = INTERVAL;
+            ts_flush = INTERVAL;
+            ssthresh = THRESH_INIT;
             buffer = new byte[mtu];
             output = output_;
             refTime.Start();
@@ -184,9 +184,9 @@ namespace Mirror.KCP
             // fast recover
             if (receiveQueue.Count < ReceiveWindowMax && fastRecover)
             {
-                // ready to send back IKCP_CMD_WINS in ikcp_flush
+                // ready to send back CMD_WINS in flush
                 // tell remote my window size
-                probe |= IKCP_ASK_TELL;
+                probe |= ASK_TELL;
             }
 
             return n - index;
@@ -277,7 +277,7 @@ namespace Mirror.KCP
             }
 
             uint rto = rx_srtt + Math.Max(interval, rx_rttval << 2);
-            rx_rto = Utils.Clamp(rto, rx_minrto, IKCP_RTO_MAX);
+            rx_rto = Utils.Clamp(rto, rx_minrto, RTO_MAX);
         }
 
         void ShrinkBuf()
@@ -406,7 +406,7 @@ namespace Mirror.KCP
         public int Input(byte[] data, int index, int size, bool regular, bool ackNoDelay)
         {
             uint s_una = snd_una;
-            if (size < IKCP_OVERHEAD) return -1;
+            if (size < OVERHEAD) return -1;
 
             int offset = index;
             uint latest = 0;
@@ -424,7 +424,7 @@ namespace Mirror.KCP
                 byte cmd = 0;
                 byte frg = 0;
 
-                if (size - (offset - index) < IKCP_OVERHEAD) break;
+                if (size - (offset - index) < OVERHEAD) break;
 
                 offset += Utils.Decode32U(data, offset, ref conv_);
 
@@ -442,10 +442,10 @@ namespace Mirror.KCP
 
                 switch (cmd)
                 {
-                    case IKCP_CMD_PUSH:
-                    case IKCP_CMD_ACK:
-                    case IKCP_CMD_WASK:
-                    case IKCP_CMD_WINS:
+                    case CMD_PUSH:
+                    case CMD_ACK:
+                    case CMD_WASK:
+                    case CMD_WINS:
                         break;
                     default:
                         return -3;
@@ -460,14 +460,14 @@ namespace Mirror.KCP
                 ParseUna(una);
                 ShrinkBuf();
 
-                if (IKCP_CMD_ACK == cmd)
+                if (CMD_ACK == cmd)
                 {
                     ParseAck(sn);
                     ParseFastrack(sn, ts);
                     flag |= 1;
                     latest = ts;
                 }
-                else if (IKCP_CMD_PUSH == cmd)
+                else if (CMD_PUSH == cmd)
                 {
                     if (sn < rcv_nxt + ReceiveWindowMax)
                     {
@@ -487,13 +487,13 @@ namespace Mirror.KCP
                         }
                     }
                 }
-                else if (IKCP_CMD_WASK == cmd)
+                else if (CMD_WASK == cmd)
                 {
-                    // ready to send back IKCP_CMD_WINS in Ikcp_flush
+                    // ready to send back CMD_WINS in flush
                     // tell remote my window size
-                    probe |= IKCP_ASK_TELL;
+                    probe |= ASK_TELL;
                 }
-                else if (IKCP_CMD_WINS == cmd)
+                else if (CMD_WINS == cmd)
                 {
                     // do nothing
                 }
@@ -579,7 +579,7 @@ namespace Mirror.KCP
         {
             var seg = Segment.Get(32);
             seg.conv = conv;
-            seg.cmd = IKCP_CMD_ACK;
+            seg.cmd = CMD_ACK;
             seg.wnd = WndUnused();
             seg.una = rcv_nxt;
 
@@ -605,7 +605,7 @@ namespace Mirror.KCP
             // flush acknowledges
             for (int i = 0; i < ackList.Count; i++)
             {
-                makeSpace(IKCP_OVERHEAD);
+                makeSpace(OVERHEAD);
                 ackItem ack = ackList[i];
                 if (ack.serialNumber >= rcv_nxt || ackList.Count - 1 == i)
                 {
@@ -630,20 +630,20 @@ namespace Mirror.KCP
                 current = CurrentMS;
                 if (probe_wait == 0)
                 {
-                    probe_wait = IKCP_PROBE_INIT;
+                    probe_wait = PROBE_INIT;
                     ts_probe = current + probe_wait;
                 }
                 else
                 {
                     if (current >= ts_probe)
                     {
-                        if (probe_wait < IKCP_PROBE_INIT)
-                            probe_wait = IKCP_PROBE_INIT;
+                        if (probe_wait < PROBE_INIT)
+                            probe_wait = PROBE_INIT;
                         probe_wait += probe_wait / 2;
-                        if (probe_wait > IKCP_PROBE_LIMIT)
-                            probe_wait = IKCP_PROBE_LIMIT;
+                        if (probe_wait > PROBE_LIMIT)
+                            probe_wait = PROBE_LIMIT;
                         ts_probe = current + probe_wait;
-                        probe |= IKCP_ASK_SEND;
+                        probe |= ASK_SEND;
                     }
                 }
             }
@@ -654,17 +654,17 @@ namespace Mirror.KCP
             }
 
             // flush window probing commands
-            if ((probe & IKCP_ASK_SEND) != 0)
+            if ((probe & ASK_SEND) != 0)
             {
-                seg.cmd = IKCP_CMD_WASK;
-                makeSpace(IKCP_OVERHEAD);
+                seg.cmd = CMD_WASK;
+                makeSpace(OVERHEAD);
                 writeIndex += seg.Encode(buffer, writeIndex);
             }
 
-            if ((probe & IKCP_ASK_TELL) != 0)
+            if ((probe & ASK_TELL) != 0)
             {
-                seg.cmd = IKCP_CMD_WINS;
-                makeSpace(IKCP_OVERHEAD);
+                seg.cmd = CMD_WINS;
+                makeSpace(OVERHEAD);
                 writeIndex += seg.Encode(buffer, writeIndex);
             }
 
@@ -684,7 +684,7 @@ namespace Mirror.KCP
 
                 Segment newseg = sendQueue[k];
                 newseg.conv = conv;
-                newseg.cmd = IKCP_CMD_PUSH;
+                newseg.cmd = CMD_PUSH;
                 newseg.sn = snd_nxt;
                 sendBuffer.Add(newseg);
                 snd_nxt++;
@@ -753,7 +753,7 @@ namespace Mirror.KCP
                     segment.wnd = seg.wnd;
                     segment.una = seg.una;
 
-                    int need = IKCP_OVERHEAD + segment.data.ReadableBytes;
+                    int need = OVERHEAD + segment.data.ReadableBytes;
                     makeSpace(need);
                     writeIndex += segment.Encode(buffer, writeIndex);
                     Buffer.BlockCopy(segment.data.RawBuffer, segment.data.ReaderIndex, buffer, writeIndex, segment.data.ReadableBytes);
@@ -780,8 +780,8 @@ namespace Mirror.KCP
                 {
                     uint inflght = snd_nxt - snd_una;
                     ssthresh = inflght / 2;
-                    if (ssthresh < IKCP_THRESH_MIN)
-                        ssthresh = IKCP_THRESH_MIN;
+                    if (ssthresh < THRESH_MIN)
+                        ssthresh = THRESH_MIN;
                     cwnd = ssthresh + resent;
                     incr = cwnd * Mss;
                 }
@@ -790,8 +790,8 @@ namespace Mirror.KCP
                 if (lostSegs > 0)
                 {
                     ssthresh = cwnd / 2;
-                    if (ssthresh < IKCP_THRESH_MIN)
-                        ssthresh = IKCP_THRESH_MIN;
+                    if (ssthresh < THRESH_MIN)
+                        ssthresh = THRESH_MIN;
                     cwnd = 1;
                     incr = Mss;
                 }
@@ -807,7 +807,7 @@ namespace Mirror.KCP
         }
 
         // update state (call it repeatedly, every 10ms-100ms), or you can ask
-        // ikcp_check when to call it again (without ikcp_input/_send calling).
+        // check when to call it again (without input/_send calling).
         // 'current' - current timestamp in millisec.
         public void Update()
         {
@@ -836,13 +836,13 @@ namespace Mirror.KCP
             }
         }
 
-        // Determine when should you invoke ikcp_update:
-        // returns when you should invoke ikcp_update in millisec, if there
-        // is no ikcp_input/_send calling. you can call ikcp_update in that
+        // Determine when should you invoke update:
+        // returns when you should invoke update in millisec, if there
+        // is no input/_send calling. you can call update in that
         // time, instead of call update repeatly.
-        // Important to reduce unnacessary ikcp_update invoking. use it to
-        // schedule ikcp_update (eg. implementing an epoll-like mechanism,
-        // or optimize ikcp_update when handling massive kcp connections)
+        // Important to reduce unnacessary update invoking. use it to
+        // schedule update (eg. implementing an epoll-like mechanism,
+        // or optimize update when handling massive kcp connections)
         public int Check()
         {
             uint current = CurrentMS;
@@ -888,7 +888,7 @@ namespace Mirror.KCP
         {
             if (mtu < 50)
                 throw new ArgumentException("MTU must be higher than 50.");
-            if (reserved >= (int)(mtu - IKCP_OVERHEAD))
+            if (reserved >= (int)(mtu - OVERHEAD))
                 throw new ArgumentException("Please increase the MTU value so it is higher than reserved bytes.");
 
             buffer = new byte[mtu];
@@ -906,7 +906,7 @@ namespace Mirror.KCP
             if (nodelay_)
             {
                 noDelay = nodelay_;
-                rx_minrto = IKCP_RTO_NDL;
+                rx_minrto = RTO_NDL;
             }
 
             if (interval_ >= 0)
@@ -932,12 +932,12 @@ namespace Mirror.KCP
                 SendWindowMax = sendWindow;
 
             if (recvWindow > 0)
-                ReceiveWindowMax = Math.Max(recvWindow, IKCP_WND_RCV);
+                ReceiveWindowMax = Math.Max(recvWindow, WND_RCV);
         }
 
         public void ReserveBytes(uint reservedSize)
         {
-            if (reservedSize >= (mtu - IKCP_OVERHEAD))
+            if (reservedSize >= (mtu - OVERHEAD))
                 throw new ArgumentException("reservedSize must be lower than MTU.");
 
             reserved = reservedSize;
