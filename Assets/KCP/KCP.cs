@@ -49,7 +49,7 @@ namespace Mirror.KCP
         uint incr;
 
         int fastresend;
-        int nocwnd; bool streamEnabled;
+        int nocwnd;
         readonly List<Segment> sendQueue = new List<Segment>(16);
         readonly List<Segment> receiveQueue = new List<Segment>(16);
         readonly List<Segment> sendBuffer = new List<Segment>(16);
@@ -70,6 +70,8 @@ namespace Mirror.KCP
 
         // internal time.
         public uint CurrentMS => (uint)DateTime.Now.Subtract(refTime).TotalMilliseconds;
+
+        public bool StreamEnabled { get; set; }
 
         // create a new kcp control object, 'conv' must equal in two endpoint
         // from the same connection.
@@ -199,7 +201,7 @@ namespace Mirror.KCP
             if (length == 0)
                 throw new ArgumentException("You cannot send a packet with a length of 0.");
 
-            if (streamEnabled)
+            if (StreamEnabled)
             {
                 int sendQueueSize = sendQueue.Count;
                 if (sendQueueSize > 0)
@@ -240,7 +242,7 @@ namespace Mirror.KCP
                 index += size;
                 length -= size;
 
-                seg.frg = streamEnabled ? 0U : (byte)(count - i - 1);
+                seg.frg = StreamEnabled ? 0U : (byte)(count - i - 1);
                 sendQueue.Add(seg);
             }
         }
@@ -937,11 +939,6 @@ namespace Mirror.KCP
                 throw new ArgumentException("reservedSize must be lower than MTU.");
 
             reserved = reservedSize;
-        }
-
-        public void SetStreamMode(bool enabled)
-        {
-            streamEnabled = enabled;
         }
     }
 }
