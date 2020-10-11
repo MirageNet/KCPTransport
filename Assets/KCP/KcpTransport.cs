@@ -81,7 +81,6 @@ namespace Mirror.KCP
         /// </summary>
         public override void Disconnect()
         {
-            listener?.Client?.Disconnect(false);
             listener?.Close();
         }
 
