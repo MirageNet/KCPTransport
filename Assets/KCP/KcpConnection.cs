@@ -22,23 +22,30 @@ namespace Mirror.KCP
         protected void SetupKcp()
         {
             kcp = new KCPTransport.KCP(0, RawSend);
-            kcp.NoDelay(0, 10, 2, 1);
+            // normal:  0, 40, 2, 1
+            // fast:    0, 30, 2, 1
+            // fast2:   1, 20, 2, 1
+            // fast3:   1, 10, 2, 1
+            kcp.NoDelay(0, 40, 2, 1);
             kcp.SetStreamMode(true);
+
+            _ = Tick();
         }
 
-        private async UniTask WaitForAck()
+        private async UniTask Tick()
         {
-            try
-            {
-                kcp.Update();
-                int check = (int)kcp.Check();
-
-                while (check > 0 && open)
+            try {
+                while (open)
                 {
-                    await UniTask.Delay(check);
                     kcp.Update();
 
-                    check = (int)kcp.Check();
+                    int check = kcp.Check();
+
+                    // call every 10 ms unless check says we can wait longer
+                    if (check < 10)
+                        check = 10;
+
+                    await UniTask.Delay(check);
                 }
             }
             catch (ObjectDisposedException)
@@ -59,8 +66,6 @@ namespace Mirror.KCP
         {
             kcp.Input(buffer, 0, buffer.Length, true, false);
 
-            _ = WaitForAck();
-
             if (isWaiting && kcp.PeekSize() > 0)
             {
                 // we just got a full message
@@ -71,14 +76,13 @@ namespace Mirror.KCP
 
         protected abstract void RawSend(byte[] data, int length);
 
-        public async Task SendAsync(ArraySegment<byte> data)
+        public Task SendAsync(ArraySegment<byte> data)
         {
             int result = kcp.Send(data.Array, data.Offset, data.Count);
 
             if (result < 0)
                 throw new SocketException((int)SocketError.SocketError);
-
-            await WaitForAck();
+            return Task.CompletedTask;
         }
 
         /// <summary>

@@ -915,7 +915,7 @@ namespace KCPTransport
         /// </summary>
         /// <remarks>Original KCP return absolute times, this version returns time deltas instead</remarks>
         /// <returns></returns>
-        public uint Check()
+        public int Check()
         {
             uint current = CurrentMS;
 
@@ -953,7 +953,7 @@ namespace KCPTransport
             // return current + (uint)minimal;
 
             // this version gives how long we should sleep instead
-            return (uint)minimal;
+            return minimal;
         }
 
         // change MTU size, default is 1400

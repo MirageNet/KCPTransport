@@ -10,7 +10,7 @@ namespace KCPTransport
         KCP mKCP = null;
 
         readonly ByteBuffer mRecvBuffer = ByteBuffer.Allocate(1024 * 32);
-        uint mNextUpdateTime = 0;
+        int mNextUpdateTime = 0;
 
         public bool IsConnected { get { return mSocket != null && mSocket.Connected; } }
         public bool WriteDelay { get; set; }
