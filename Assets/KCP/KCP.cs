@@ -226,7 +226,7 @@ namespace Mirror.KCP
                 count = (int)((length + Mss - 1) / Mss);
 
             if (count > 255)
-                throw new Exception("Your packet is too big, please reduce its length or increase the MTU with SetMtu().");
+                throw new ArgumentException("Your packet is too big, please reduce its length or increase the MTU with SetMtu().");
 
             if (count == 0) count = 1;
 

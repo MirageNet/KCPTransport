@@ -2,7 +2,7 @@ using System;
 
 namespace Mirror.KCP
 {
-    public class Utils
+    public static class Utils
     {
         // encode 8 bits unsigned int
         public static int Encode8u(byte[] p, int offset, byte c)
