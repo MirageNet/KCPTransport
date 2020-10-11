@@ -57,13 +57,13 @@ namespace Mirror.KCP
         readonly List<ackItem> ackList = new List<ackItem>(16);
 
         byte[] buffer;
-        uint reserved;
+        uint reserved = 0;
         readonly Action<byte[], int> output; // buffer, size
 
         public uint SendWindowMax { get; private set; }
         public uint ReceiveWindowMax { get; private set; }
         public uint RmtWnd { get; private set; }
-        public uint Mss { get; private set; }
+        public uint Mss => mtu - IKCP_OVERHEAD - reserved;
 
         // get how many packet is waiting to be sent
         public int WaitSnd { get { return sendBuffer.Count + sendQueue.Count; } } 
@@ -80,7 +80,6 @@ namespace Mirror.KCP
             ReceiveWindowMax = IKCP_WND_RCV;
             RmtWnd = IKCP_WND_RCV;
             mtu = IKCP_MTU_DEF;
-            Mss = mtu - IKCP_OVERHEAD;
             rx_rto = IKCP_RTO_DEF;
             rx_minrto = IKCP_RTO_MIN;
             interval = IKCP_INTERVAL;
@@ -889,7 +888,6 @@ namespace Mirror.KCP
             buffer = new byte[mtu];
 
             this.mtu = mtu;
-            Mss = this.mtu - IKCP_OVERHEAD - (uint)reserved;
         }
 
         // turbo mode: SetNoDelay(1, 20, 2, 1)
@@ -937,7 +935,6 @@ namespace Mirror.KCP
                 throw new ArgumentException("reservedSize must be lower than MTU.");
 
             reserved = reservedSize;
-            Mss = mtu - IKCP_OVERHEAD - reservedSize;
         }
 
         public void SetStreamMode(bool enabled)
