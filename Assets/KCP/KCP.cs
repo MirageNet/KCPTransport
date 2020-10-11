@@ -872,19 +872,19 @@ namespace Mirror.KCP
             return current + (uint)minimal;
         }
 
-        // change MTU size, default is 1400
-        public int SetMtu(int mtu_)
+        /// <summary>Change MTU (Maximum Transmission Unit) size. Default is 1400.</summary>
+        /// <param name="mtu">Maximum Transmission Unit size. Can't be lower than 50 and must be higher than reserved bytes.</param>
+        public void SetMtu(uint mtu)
         {
-            if (mtu_ < 50)
-                return -1;
+            if (mtu < 50)
+                throw new ArgumentException("MTU must be higher than 50.");
             if (reserved >= (int)(mtu - IKCP_OVERHEAD) || reserved < 0)
-                return -1;
+                throw new ArgumentException("Please increase the MTU value so it is higher than reserved bytes.");
 
-            buffer = new byte[mtu_];
+            buffer = new byte[mtu];
 
-            mtu = (uint)mtu_;
-            Mss = mtu - IKCP_OVERHEAD - (uint)reserved;
-            return 0;
+            this.mtu = mtu;
+            Mss = this.mtu - IKCP_OVERHEAD - (uint)reserved;
         }
 
         // turbo mode: SetNoDelay(1, 20, 2, 1)
