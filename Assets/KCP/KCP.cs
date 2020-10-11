@@ -904,13 +904,17 @@ namespace KCPTransport
             }
         }
 
-        // Determine when should you invoke ikcp_update:
-        // returns when you should invoke ikcp_update in millisec, if there
-        // is no ikcp_input/_send calling. you can call ikcp_update in that
-        // time, instead of call update repeatly.
-        // Important to reduce unnacessary ikcp_update invoking. use it to
-        // schedule ikcp_update (eg. implementing an epoll-like mechanism,
-        // or optimize ikcp_update when handling massive kcp connections)
+        /// <summary>
+        /// Determine when should you invoke ikcp_update:
+        /// returns when you should invoke ikcp_update in millisec, if there
+        /// is no ikcp_input/_send calling. you can call ikcp_update in that
+        /// time, instead of call update repeatly.
+        /// Important to reduce unnacessary ikcp_update invoking. use it to
+        /// schedule ikcp_update (eg. implementing an epoll-like mechanism,
+        /// or optimize ikcp_update when handling massive kcp connections)
+        /// </summary>
+        /// <remarks>Original KCP return absolute times, this version returns time deltas instead</remarks>
+        /// <returns></returns>
         public uint Check()
         {
             uint current = CurrentMS;
@@ -919,13 +923,13 @@ namespace KCPTransport
             int tm_packet = 0x7fffffff;
 
             if (updated == 0)
-                return current;
+                return 0;
 
             if (current >= ts_flush_ + 10000 || current < ts_flush_ - 10000)
                 ts_flush_ = current;
 
             if (current >= ts_flush_)
-                return current;
+                return 0;
 
             int tm_flush_ = TimeDiff(ts_flush_, current);
 
@@ -933,7 +937,7 @@ namespace KCPTransport
             {
                 int diff = TimeDiff(seg.resendts, current);
                 if (diff <= 0)
-                    return current;
+                    return 0;
                 if (diff < tm_packet)
                     tm_packet = diff;
             }
@@ -944,7 +948,12 @@ namespace KCPTransport
             if (minimal >= interval)
                 minimal = (int)interval;
 
-            return current + (uint)minimal;
+            // original gave the time when update should be called again
+            // which is an ever increasing amount.
+            // return current + (uint)minimal;
+
+            // this version gives how long we should sleep instead
+            return (uint)minimal;
         }
 
         // change MTU size, default is 1400

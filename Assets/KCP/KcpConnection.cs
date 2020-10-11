@@ -5,86 +5,81 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
-using Random = System.Random;
 
 #endregion
 
 namespace Mirror.KCP
 {
-    public sealed class KcpConnection : IConnection
+    public abstract class KcpConnection : IConnection
     {
         #region Fields
 
-        private Socket _socket;
-        private KCPTransport.KCP _kcp;
-        private uint _nextUpdateTime = 0;
+        protected readonly UdpClient udpClient;
+        protected IPEndPoint remoteEndpoint;
+        protected KCPTransport.KCP kcp;
+        protected bool open;
 
         #endregion
 
-        #region Class Specific
-
-        public KcpConnection(Socket handler)
+        protected KcpConnection(UdpClient udpClient)
         {
-            if(handler == null) return;
-
-            _socket = handler;
-
-            _ = Task.Run(Tick);
+            this.udpClient = udpClient;
         }
 
-        private void Tick()
-        {
-            while(_socket != null)
-            {
-                while (0 != _nextUpdateTime && _kcp.CurrentMS < _nextUpdateTime)
-                {
-                    Task.Delay(100);
-                }
+        #region KCP layer
 
-                _kcp.Update();
-                _nextUpdateTime = _kcp.Check();
-            }
+        protected void SetupKcp()
+        {
+            kcp = new KCPTransport.KCP(0, RawSend);
+            kcp.NoDelay(0, 10, 2, 1);
+            kcp.SetStreamMode(true);
+            _ = Tick();
         }
 
-        public async Task<IConnection> Connect(string address, ushort port)
+        private async UniTask Tick()
         {
             try
             {
-                IPHostEntry hostEntry = await Dns.GetHostEntryAsync(address);
-
-                if (hostEntry.AddressList.Length == 0)
+                while (open)
                 {
-                    throw new Exception("Unable to resolve host: " + address);
+                    kcp.Update();
+                    uint sleepTime = kcp.Check();
+
+                    if (sleepTime > 0)
+                    {
+                        await UniTask.Delay((int)sleepTime);
+                    }
                 }
-
-                IPAddress endpoint = hostEntry.AddressList[0];
-                _socket = new Socket(endpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-
-                await _socket.ConnectAsync(endpoint, port);
-                byte[] data = new byte[] { 42 };
-                _socket.Send(data);
-                _kcp = new KCPTransport.KCP((uint)(new Random().Next(1, int.MaxValue)), SendAsync);
-
-                _kcp.NoDelay(0, 10, 2, 1);
-                _kcp.SetStreamMode(true);
-
-                _ = Task.Run(Tick);
-
-                return this;
             }
-            catch (Exception ex)
+            catch (ObjectDisposedException)
             {
-                Debug.LogException(new Exception($"Connection failure. Exception: {ex}"));
-
-                return null;
+                // fine,  socket was closed,  no more ticking needed
+            }
+            catch(Exception ex)
+            {
+                Debug.LogException(ex);
             }
         }
 
-        private void SendAsync(byte[] data, int length)
+        volatile bool isWaiting = false;
+
+        readonly AutoResetUniTaskCompletionSource dataAvailable = AutoResetUniTaskCompletionSource.Create();
+
+        internal void RawInput(byte[] buffer)
         {
-            _socket?.Send(data, length, SocketFlags.None);
+            kcp.Input(buffer, 0, buffer.Length, true, false);
+
+            if (isWaiting && kcp.PeekSize() > 0)
+            {
+                // we just got a full message
+                // Let the receivers know
+                dataAvailable.TrySetResult();
+            }
         }
+
+        protected abstract void RawSend(byte[] data, int length);
 
         #endregion
 
@@ -92,17 +87,12 @@ namespace Mirror.KCP
 
         public Task SendAsync(ArraySegment<byte> data)
         {
-            byte[] buffer = new byte[data.Count];
+            int result = kcp.Send(data.Array, data.Offset, data.Count);
 
-            Array.Copy(data.Array, data.Offset, buffer, 0, data.Count);
+            if (result < 0)
+                return Task.FromException(new SocketException((int)SocketError.SocketError));
 
-            int result = _kcp.Send(buffer);
-
-            Debug.Log(result == 0
-                ? $"Connection sent data: {BitConverter.ToString(data.Array)}"
-                : $"Connection failed to send data: {BitConverter.ToString(data.Array)}");
-
-            return result == 1 ? Task.CompletedTask : null;
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -110,26 +100,39 @@ namespace Mirror.KCP
         /// </summary>
         /// <param name="buffer">buffer where the message will be written</param>
         /// <returns>true if we got a message, false if we got disconnected</returns>
-        public Task<bool> ReceiveAsync(MemoryStream buffer)
+        public async Task<bool> ReceiveAsync(MemoryStream buffer)
         {
-            buffer.SetLength(0);
-            buffer.TryGetBuffer(out ArraySegment<byte> byteBuffer);
+            int msgSize = kcp.PeekSize();
 
-            while (_kcp.Recv(byteBuffer.Array) > -1)
+            if (msgSize < 0)
             {
-                return Task.FromResult(true);
+                isWaiting = true;
+                await dataAvailable.Task;
+                isWaiting = false;
+                msgSize = kcp.PeekSize();
             }
 
-            return Task.FromResult(false);
+            if (msgSize <=0 )
+            {
+                // disconnected
+                return false;
+            }
+
+            // we have some data,  return it
+            buffer.SetLength(msgSize);
+            buffer.Position = 0;
+            buffer.TryGetBuffer(out ArraySegment<byte> data);
+            kcp.Recv(data.Array, data.Offset, data.Count);
+
+            return true;
         }
 
         /// <summary>
         ///     Disconnect this connection
         /// </summary>
-        public void Disconnect()
+        public virtual void Disconnect()
         {
-            _socket?.Close();
-            _socket = null;
+            open = false;
         }
 
         /// <summary>
@@ -140,7 +143,7 @@ namespace Mirror.KCP
         /// <returns></returns>
         public EndPoint GetEndPointAddress()
         {
-            return _socket.RemoteEndPoint;
+            return remoteEndpoint;
         }
 
         #endregion
