@@ -653,22 +653,22 @@ namespace KCPTransport
 
             int writeIndex = reserved;
 
-            Action<int> makeSpace = (space) =>
+            void makeSpace(int space)
             {
                 if (writeIndex + space > mtu)
                 {
                     output(buffer, writeIndex);
                     writeIndex = reserved;
                 }
-            };
+            }
 
-            Action flushBuffer = () =>
+            void flushBuffer()
             {
                 if (writeIndex > reserved)
                 {
                     output(buffer, writeIndex);
                 }
-            };
+            }
 
             // flush acknowledges
             for (int i = 0; i < acklist.Count; i++)
