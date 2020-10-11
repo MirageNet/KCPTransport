@@ -581,22 +581,22 @@ namespace Mirror.KCP
 
             int writeIndex = (int)reserved;
 
-            Action<int> makeSpace = (space) =>
+            void makeSpace(int space)
             {
                 if (writeIndex + space > mtu)
                 {
                     output(buffer, writeIndex);
                     writeIndex = (int)reserved;
                 }
-            };
+            }
 
-            Action flushBuffer = () =>
+            void flushBuffer()
             {
                 if (writeIndex > reserved)
                 {
                     output(buffer, writeIndex);
                 }
-            };
+            }
 
             // flush acknowledges
             for (int i = 0; i < ackList.Count; i++)
