@@ -190,15 +190,16 @@ namespace Mirror.KCP
             return n - index;
         }
 
-        public int Send(byte[] buffer)
+        public void Send(byte[] buffer)
         {
-            return Send(buffer, 0, buffer.Length);
+            Send(buffer, 0, buffer.Length);
         }
 
-        // user/upper level send, returns below zero for error
-        public int Send(byte[] buffer, int index, int length)
+        // user/upper level send
+        public void Send(byte[] buffer, int index, int length)
         {
-            if (length == 0) return -1;
+            if (length == 0)
+                throw new ArgumentException("You cannot send a packet with a length of 0.");
 
             if (streamEnabled)
             {
@@ -218,7 +219,7 @@ namespace Mirror.KCP
             }
 
             if (length == 0)
-                return 0;
+                return;
 
             int count;
             if (length <= Mss)
@@ -226,7 +227,8 @@ namespace Mirror.KCP
             else
                 count = (int)((length + Mss - 1) / Mss);
 
-            if (count > 255) return -2;
+            if (count > 255)
+                throw new Exception("Your packet is too big, please reduce its length or increase the MTU with SetMtu().");
 
             if (count == 0) count = 1;
 
@@ -243,8 +245,6 @@ namespace Mirror.KCP
                 seg.frg = (!streamEnabled ? (byte)(count - i - 1) : 0U);
                 sendQueue.Add(seg);
             }
-
-            return 0;
         }
 
         // update ack.
