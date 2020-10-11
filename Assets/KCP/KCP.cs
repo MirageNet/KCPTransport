@@ -93,7 +93,7 @@ namespace KCPTransport
 
         static int TimeDiff(uint later, uint earlier)
         {
-            return ((int)(later - earlier));
+            return (int)(later - earlier);
         }
 
         internal struct ackItem
@@ -294,7 +294,7 @@ namespace KCPTransport
             if (length <= Mss)
                 count = 1;
             else
-                count = (int)(((length) + Mss - 1) / Mss);
+                count = (int)((length + Mss - 1) / Mss);
 
             if (count > 255) return -2;
 
@@ -309,7 +309,7 @@ namespace KCPTransport
                 index += size;
                 length -= size;
 
-                seg.frg = (stream == 0 ? (byte)(count - i - 1) : (byte)0);
+                seg.frg = stream == 0 ? (byte)(count - i - 1) : (byte)0;
                 snd_queue.Add(seg);
             }
 
@@ -608,7 +608,7 @@ namespace KCPTransport
                             {
                                 incr = _mss;
                             }
-                            incr += (_mss * _mss) / incr + (_mss) / 16;
+                            incr += _mss * _mss / incr + _mss / 16;
                             if ((cwnd + 1) * _mss <= incr)
                             {
                                 if (_mss > 0)
@@ -673,7 +673,7 @@ namespace KCPTransport
             // flush acknowledges
             for (int i = 0; i < acklist.Count; i++)
             {
-                makeSpace(KCP.IKCP_OVERHEAD);
+                makeSpace(IKCP_OVERHEAD);
                 ackItem ack = acklist[i];
                 if (ack.sn >= rcv_nxt || acklist.Count - 1 == i)
                 {
@@ -1025,7 +1025,7 @@ namespace KCPTransport
                 return false;
 
             reserved = reservedSize;
-            Mss = mtu - IKCP_OVERHEAD - (uint)(reservedSize);
+            Mss = mtu - IKCP_OVERHEAD - (uint)reservedSize;
             return true;
         }
 
