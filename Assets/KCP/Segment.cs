@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace KCPTransport
+namespace Mirror.KCP
 {
 
     // KCP Segment Definition

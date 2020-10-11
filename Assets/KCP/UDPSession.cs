@@ -2,7 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 
-namespace KCPTransport
+namespace Mirror.KCP
 {
     class UDPSession
     {

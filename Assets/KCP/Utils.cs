@@ -1,6 +1,6 @@
 using System;
 
-namespace KCPTransport
+namespace Mirror.KCP
 {
     public class Utils
     {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace KCPTransport
+namespace Mirror.KCP
 {
     public class KCP
     {
