@@ -515,6 +515,19 @@ namespace Mirror.KCP
             }
 
             // cwnd update when packet arrived
+            UpdateCwnd(s_una);
+
+            // ack immediately
+            if (ackNoDelay && ackList.Count > 0)
+            {
+                Flush(true);
+            }
+
+            return 0;
+        }
+
+        void UpdateCwnd(uint s_una)
+        {
             if (nocwnd == 0)
             {
                 if (snd_una > s_una)
@@ -530,10 +543,10 @@ namespace Mirror.KCP
                         else
                         {
                             if (incr < _mss)
-                            {
                                 incr = _mss;
-                            }
+
                             incr += (_mss * _mss) / incr + (_mss) / 16;
+
                             if ((cwnd + 1) * _mss <= incr)
                             {
                                 if (_mss > 0)
@@ -550,14 +563,6 @@ namespace Mirror.KCP
                     }
                 }
             }
-
-            // ack immediately
-            if (ackNoDelay && ackList.Count > 0)
-            {
-                Flush(true);
-            }
-
-            return 0;
         }
 
         ushort WndUnused()
