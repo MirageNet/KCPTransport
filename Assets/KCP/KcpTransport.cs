@@ -105,15 +105,13 @@ namespace Mirror.KCP
         /// <returns>the url at which this server can be reached</returns>
         public override IEnumerable<Uri> ServerUri()
         {
+            var builder = new UriBuilder
             {
-                var builder = new UriBuilder
-                {
-                    Scheme = "kcp",
-                    Host = _bindAddress,
-                    Port = Port
-                };
-                return new[] { builder.Uri };
-            }
+                Scheme = "kcp",
+                Host = _bindAddress,
+                Port = Port
+            };
+            return new[] { builder.Uri };
         }
 
         /// <summary>
