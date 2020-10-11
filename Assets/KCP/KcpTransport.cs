@@ -93,7 +93,7 @@ namespace Mirror.KCP
         {
             KcpServerConnection connection = await acceptedConnections.Reader.ReadAsync();
 
-            await connection.HandShake();
+            await connection.Handshake();
 
             return connection;
         }

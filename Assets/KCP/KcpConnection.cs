@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -14,6 +15,11 @@ namespace Mirror.KCP
         protected IPEndPoint remoteEndpoint;
         protected KCP kcp;
         protected bool open;
+
+        private int lastSend = 0;
+
+        internal static readonly ArraySegment<byte> Hello = new ArraySegment<byte>(new byte[] { 0 });
+        private static readonly ArraySegment<byte> Goodby = new ArraySegment<byte>(new byte[] { 1 });
 
         protected KcpConnection()
         {
@@ -32,7 +38,8 @@ namespace Mirror.KCP
 
         private async UniTask Tick()
         {
-            try {
+            try
+            {
                 while (open)
                 {
                     kcp.Update();
@@ -54,6 +61,16 @@ namespace Mirror.KCP
             {
                 Debug.LogException(ex);
             }
+            finally
+            {
+                open = false;
+                dataAvailable.TrySetResult();
+                Dispose();
+            }
+        }
+
+        protected virtual void Dispose()
+        {
         }
 
         volatile bool isWaiting = false;
@@ -87,6 +104,9 @@ namespace Mirror.KCP
         /// <returns>true if we got a message, false if we got disconnected</returns>
         public async Task<bool> ReceiveAsync(MemoryStream buffer)
         {
+            if (!open)
+                return false;
+
             int msgSize = kcp.PeekSize();
 
             if (msgSize < 0)
@@ -96,6 +116,9 @@ namespace Mirror.KCP
                 isWaiting = false;
                 msgSize = kcp.PeekSize();
             }
+
+            if (!open)
+                return false;
 
             if (msgSize <=0 )
             {
@@ -109,7 +132,27 @@ namespace Mirror.KCP
             buffer.TryGetBuffer(out ArraySegment<byte> data);
             kcp.Recv(data.Array, data.Offset, data.Count);
 
+            // if we receive a disconnect message,  then close everything
+            
+            var dataSegment = new ArraySegment<byte>(buffer.GetBuffer(), 0, msgSize);
+            if (dataSegment.SequenceEqual(Goodby))
+            {
+                open = false;
+                return false;
+            }
+
             return true;
+        }
+
+        internal async Task Handshake()
+        {
+            // send a greeting and see if the server replies
+            await SendAsync(Hello);
+            var stream = new MemoryStream();
+            if (!await ReceiveAsync(stream))
+            {
+                throw new SocketException((int)SocketError.SocketError);
+            }
         }
 
         /// <summary>
@@ -117,7 +160,16 @@ namespace Mirror.KCP
         /// </summary>
         public virtual void Disconnect()
         {
+            // send a disconnect message and disconnect
+            if (open)
+            {
+                _ = SendAsync(Goodby);
+                kcp.Flush(false);
+            }
             open = false;
+
+            // EOF is now available
+            dataAvailable.TrySetResult();
         }
 
         /// <summary>

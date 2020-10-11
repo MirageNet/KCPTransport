@@ -79,7 +79,7 @@ namespace Mirror.KCP
 
 
         [UnityTest]
-        public IEnumerator ServerDisconnect() => UniTask.ToCoroutine(async () =>
+        public IEnumerator DisconnectFromServer() => UniTask.ToCoroutine(async () =>
         {
             serverConnection.Disconnect();
 
