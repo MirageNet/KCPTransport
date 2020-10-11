@@ -27,8 +27,6 @@ namespace Mirror.KCP
             // fast2:   1, 20, 2, 1
             // fast3:   1, 10, 2, 1
             kcp.NoDelay(0, 40, 2, 1);
-            kcp.SetStreamMode(true);
-
             _ = Tick();
         }
 

@@ -115,7 +115,8 @@ namespace KCPTransport
         uint incr;
 
         int fastresend;
-        int nocwnd; int stream;
+        int nocwnd;
+        public bool Stream { get; set; }
         readonly List<Segment> snd_queue = new List<Segment>(16);
         readonly List<Segment> rcv_queue = new List<Segment>(16);
         readonly List<Segment> snd_buf = new List<Segment>(16);
@@ -270,7 +271,7 @@ namespace KCPTransport
         {
             if (0 == length) return -1;
 
-            if (stream != 0)
+            if (Stream)
             {
                 int n = snd_queue.Count;
                 if (n > 0)
@@ -309,7 +310,7 @@ namespace KCPTransport
                 index += size;
                 length -= size;
 
-                seg.frg = stream == 0 ? (byte)(count - i - 1) : (byte)0;
+                seg.frg = Stream ? (byte)0 : (byte)(count - i - 1);
                 snd_queue.Add(seg);
             }
 
@@ -1027,11 +1028,6 @@ namespace KCPTransport
             reserved = reservedSize;
             Mss = mtu - IKCP_OVERHEAD - (uint)reservedSize;
             return true;
-        }
-
-        public void SetStreamMode(bool enabled)
-        {
-            stream = enabled ? 1 : 0;
         }
     }
 }
