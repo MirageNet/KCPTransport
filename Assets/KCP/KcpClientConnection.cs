@@ -47,15 +47,11 @@ namespace Mirror.KCP
 
             // send a greeting and see if the server replies
             await SendAsync(KcpTransport.Hello);
-            Debug.Log("Client sent hello");
             var stream = new MemoryStream();
-            Debug.Log("Client waiting for hello");
             if (!await ReceiveAsync(stream))
             {
-                Debug.LogError("Client did not get hello");
                 throw new SocketException((int)SocketError.SocketError);
             }
-            Debug.Log("Client got hello");
         }
 
         private async Task ReceiveLoopAsync()
