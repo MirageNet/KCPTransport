@@ -44,7 +44,7 @@ namespace Mirror.KCP
             clientConnection?.Disconnect();
             serverConnection?.Disconnect();
 
-            GameObject.Destroy(transport.gameObject);
+            UnityEngine.Object.Destroy(transport.gameObject);
         }
 
         // A Test behaves as an ordinary method
@@ -86,7 +86,7 @@ namespace Mirror.KCP
             var buffer = new MemoryStream();
             bool more = await clientConnection.ReceiveAsync(buffer);
 
-            Assert.That(more, Is.False, "Receive shoudl return false when the connection is disconnected");
+            Assert.That(more, Is.False, "Receive should return false when the connection is disconnected");
         });
     }
 }
