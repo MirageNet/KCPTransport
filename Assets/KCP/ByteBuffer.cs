@@ -10,14 +10,14 @@ namespace KCPTransport
         int markReadIndex = 0;
         int markWirteIndex = 0;
         static List<ByteBuffer> pool = new List<ByteBuffer>();
-        static int poolMaxCount = 200;
+        const int PoolMaxCount = 200;
 
         bool isPool = false;
 
         ByteBuffer(int capacity)
         {
             RawBuffer = new byte[capacity];
-            this.Capacity = capacity;
+            Capacity = capacity;
             readIndex = 0;
             writeIndex = 0;
         }
@@ -881,7 +881,7 @@ namespace KCPTransport
             {
                 lock (pool)
                 {
-                    if (pool.Count < poolMaxCount)
+                    if (pool.Count < PoolMaxCount)
                     {
                         Clear();
                         pool.Add(this);
