@@ -49,14 +49,14 @@ namespace Mirror.KCP
 
         // A Test behaves as an ordinary method
         [Test]
-        public void CanEstablishConnections()
+        public void Connect()
         {
             Assert.That(clientConnection, Is.Not.Null);
             Assert.That(serverConnection, Is.Not.Null);
         }
 
         [UnityTest]
-        public IEnumerator CanSendData() => UniTask.ToCoroutine(async () =>
+        public IEnumerator SendDataFromClient() => UniTask.ToCoroutine(async () =>
         {
             byte[] data = new byte[] { (byte)Random.Range(1, 255) };
             await clientConnection.SendAsync(new ArraySegment<byte>(data));
@@ -64,6 +64,29 @@ namespace Mirror.KCP
             var buffer = new MemoryStream();
             await serverConnection.ReceiveAsync(buffer);
             Assert.That(buffer.ToArray(), Is.EquivalentTo(data));
+        });
+
+        [UnityTest]
+        public IEnumerator SendDataFromServer() => UniTask.ToCoroutine(async () =>
+        {
+            byte[] data = new byte[] { (byte)Random.Range(1, 255) };
+            await serverConnection.SendAsync(new ArraySegment<byte>(data));
+
+            var buffer = new MemoryStream();
+            await clientConnection.ReceiveAsync(buffer);
+            Assert.That(buffer.ToArray(), Is.EquivalentTo(data));
+        });
+
+
+        [UnityTest]
+        public IEnumerator ServerDisconnect() => UniTask.ToCoroutine(async () =>
+        {
+            serverConnection.Disconnect();
+
+            var buffer = new MemoryStream();
+            bool more = await clientConnection.ReceiveAsync(buffer);
+
+            Assert.That(more, Is.False, "Receive shoudl return false when the connection is disconnected");
         });
     }
 }
