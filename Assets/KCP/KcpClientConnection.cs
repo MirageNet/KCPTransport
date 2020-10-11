@@ -51,7 +51,7 @@ namespace Mirror.KCP
         {
             try
             {
-                while (true)
+                while (udpClient.Client != null)
                 {
                     UdpReceiveResult result = await udpClient.ReceiveAsync();
                     Debug.Log("Client received a message");

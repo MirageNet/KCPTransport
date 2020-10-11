@@ -54,7 +54,7 @@ namespace Mirror.KCP
             try
             {
                 var endPoint = new IPEndPoint(IPAddress.Any, 0);
-                while (true)
+                while (listener.Client != null)
                 {
                     UdpReceiveResult result = await listener.ReceiveAsync();
                     // send it to the proper connection
