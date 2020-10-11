@@ -808,7 +808,7 @@ namespace KCPTransport
             {
                 byte[] newbytes = new byte[writeIndex - readIndex];
                 Array.Copy(RawBuffer, readIndex, newbytes, 0, newbytes.Length);
-                ByteBuffer buffer = new ByteBuffer(newbytes.Length);
+                var buffer = new ByteBuffer(newbytes.Length);
                 buffer.WriteBytes(newbytes);
                 buffer.isPool = isPool;
                 return buffer;
@@ -827,7 +827,7 @@ namespace KCPTransport
             {
                 return new ByteBuffer(16);
             }
-            ByteBuffer newBuf = new ByteBuffer(RawBuffer)
+            var newBuf = new ByteBuffer(RawBuffer)
             {
                 Capacity = Capacity,
                 readIndex = readIndex,
