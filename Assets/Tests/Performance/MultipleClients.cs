@@ -19,7 +19,7 @@ namespace Mirror.KCP
         const int Warmup = 50;
         const int MeasureCount = 256;
 
-        const int ClientCount = 10;
+        const int ClientCount = 50;
         const int MonsterCount = 10;
 
         public NetworkServer server;
