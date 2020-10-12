@@ -331,25 +331,7 @@ namespace Mirror.KCP
                 return;
 
             InsertSegmentInReceiveBuffer(newseg);
-
-            // move available data from rcv_buf -> rcv_queue
-            int count = 0;
-            foreach (Segment seg in receiveBuffer)
-            {
-                if (seg.sn == rcv_nxt && receiveQueue.Count + count < ReceiveWindowMax)
-                {
-                    rcv_nxt++;
-                    count++;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            for (int i = 0; i < count; i++)
-                receiveQueue.Add(receiveBuffer[i]);
-            receiveBuffer.RemoveRange(0, count);
+            MoveToReceiveQueue();
         }
 
         private void InsertSegmentInReceiveBuffer(Segment newseg)
@@ -381,6 +363,28 @@ namespace Mirror.KCP
                 else
                     receiveBuffer.Insert(insert_idx, newseg);
             }
+        }
+
+        // move available data from rcv_buf -> rcv_queue
+        private void MoveToReceiveQueue()
+        {
+            int count = 0;
+            foreach (Segment seg in receiveBuffer)
+            {
+                if (seg.sn == rcv_nxt && receiveQueue.Count + count < ReceiveWindowMax)
+                {
+                    rcv_nxt++;
+                    count++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            for (int i = 0; i < count; i++)
+                receiveQueue.Add(receiveBuffer[i]);
+            receiveBuffer.RemoveRange(0, count);
         }
 
         /// <summary>Input
