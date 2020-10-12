@@ -76,7 +76,7 @@ namespace Mirror.KCP
         public uint Mss => mtu - OVERHEAD - reserved;
 
         // get how many packet is waiting to be sent
-        public int WaitSnd { get { return sendBuffer.Count + sendQueue.Count; } } 
+        public int WaitSnd => sendBuffer.Count + sendQueue.Count;
 
         // internal time.
         public uint CurrentMS => (uint)refTime.ElapsedMilliseconds;
