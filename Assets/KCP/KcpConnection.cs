@@ -20,7 +20,7 @@ namespace Mirror.KCP
         // then consider us disconnected
         public const int TIMEOUT = 3000;
 
-        volatile uint lastReceived = 0;
+        volatile uint lastReceived;
 
         internal static readonly ArraySegment<byte> Hello = new ArraySegment<byte>(new byte[] { 0 });
         private static readonly ArraySegment<byte> Goodby = new ArraySegment<byte>(new byte[] { 1 });
