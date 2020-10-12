@@ -18,7 +18,7 @@ namespace Mirror.KCP
         public const int ASK_TELL = 2;  // need to send CMD_WINS
         public const int WND_SND = 32;
         public const int WND_RCV = 32;
-        public const int MTU_DEF = 1400;
+        public const int MTU_DEF = 1200; //MTU Default.
         public const int ACK_FAST = 3;
         public const int INTERVAL = 100;
         public const int OVERHEAD = 24;
@@ -902,33 +902,39 @@ namespace Mirror.KCP
             this.mtu = mtu;
         }
 
-        // turbo mode: SetNoDelay(1, 20, 2, 1)
-        // normal mode: SetNoDelay(0, 40, 0, 0)
-        // interval: internal update timer interval in millisec, default is 100ms
-        // resend: 0:disable fast resend(default), 1:enable fast resend
-        // nc: 0:normal congestion control(default), 1:disable congestion control
-        public void SetNoDelay(bool nodelay_, uint interval_, int resend_, int nc_)
+
+        /// <summary>SetNoDelay
+        /// <para>Normal: false, 40, 0, 0</para>
+        /// <para>Fast:    false, 30, 2, 1</para>
+        /// <para>Fast2:   true, 20, 2, 1</para>
+        /// <para>Fast3:   true, 10, 2, 1</para>
+        /// </summary>
+        /// <param name="nodelay">Whether to enable nodelay mode.</param>
+        /// <param name="interval">Interval of the internal working of the protocol, in milliseconds, such as 10ms or 20ms.</param>
+        /// <param name="resend">fast retransmission mode, default 0 is off, 1 fast resend, 2 can be set (2 ACK crossings will directly retransmit).</param>
+        /// <param name="nc">Whether to close the flow control (congestion), the default is 0 means not to close, 1 means to close.</param>
+        public void SetNoDelay(bool nodelay = false, uint interval = 40, int resend = 0, int nc = 0)
         {
-            if (nodelay_)
+            if (nodelay)
             {
-                noDelay = nodelay_;
+                noDelay = nodelay;
                 rx_minrto = RTO_NDL;
             }
 
-            if (interval_ >= 0)
+            if (interval >= 0)
             {
-                if (interval_ > 5000)
-                    interval_ = 5000;
-                else if (interval_ < 10)
-                    interval_ = 10;
-                interval = interval_;
+                if (interval > 5000)
+                    interval = 5000;
+                else if (interval < 10)
+                    interval = 10;
+                this.interval = interval;
             }
 
-            if (resend_ >= 0)
-                fastresend = resend_;
+            if (resend >= 0)
+                fastresend = resend;
 
-            if (nc_ >= 0)
-                nocwnd = nc_;
+            if (nc >= 0)
+                nocwnd = nc;
         }
 
         // set maximum window size: sndwnd=32, rcvwnd=32 by default
