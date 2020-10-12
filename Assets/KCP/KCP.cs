@@ -81,8 +81,6 @@ namespace Mirror.KCP
         // internal time.
         public uint CurrentMS => (uint)refTime.ElapsedMilliseconds;
 
-        public bool StreamEnabled { get; set; }
-
         /// <summary>create a new kcp control object</summary>
         /// <param name="conv_">must equal in two endpoint from the same connection.</param>
         /// <param name="output_"></param>
@@ -221,23 +219,6 @@ namespace Mirror.KCP
             if (length == 0)
                 throw new ArgumentException("You cannot send a packet with a length of 0.");
 
-            if (StreamEnabled)
-            {
-                int sendQueueSize = sendQueue.Count;
-                if (sendQueueSize > 0)
-                {
-                    Segment seg = sendQueue[sendQueueSize - 1];
-                    if (seg.data.ReadableBytes < Mss)
-                    {
-                        int capacity = (int)(Mss - seg.data.ReadableBytes);
-                        int writen = Math.Min(capacity, length);
-                        seg.data.WriteBytes(buffer, index, writen);
-                        index += writen;
-                        length -= writen;
-                    }
-                }
-            }
-
             if (length == 0)
                 return;
 
@@ -262,7 +243,7 @@ namespace Mirror.KCP
                 index += size;
                 length -= size;
 
-                seg.frg = StreamEnabled ? 0U : (byte)(count - i - 1);
+                seg.frg = (byte)(count - i - 1);
                 sendQueue.Add(seg);
             }
         }
