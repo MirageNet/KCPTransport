@@ -690,15 +690,7 @@ namespace Mirror.KCP
                     segment.rto = rx_rto;
                     segment.resendts = current + segment.rto;
                 }
-                else if (segment.fastack >= resent) // fast retransmit
-                {
-                    needSend = true;
-                    segment.fastack = 0;
-                    segment.rto = rx_rto;
-                    segment.resendts = current + segment.rto;
-                    change++;
-                }
-                else if (segment.fastack > 0 && newSegsCount == 0) // early retransmit
+                else if (segment.fastack >= resent || segment.fastack > 0 && newSegsCount == 0 ) // fast retransmit
                 {
                     needSend = true;
                     segment.fastack = 0;
