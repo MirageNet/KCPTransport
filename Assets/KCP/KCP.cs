@@ -896,7 +896,7 @@ namespace Mirror.KCP
             return  minimal;
         }
 
-        /// <summary>Change MTU (Maximum Transmission Unit) size. Default is 1400.</summary>
+        /// <summary>Change MTU (Maximum Transmission Unit) size. Default is 1200.</summary>
         /// <param name="mtu">Maximum Transmission Unit size. Can't be lower than 50 and must be higher than reserved bytes.</param>
         public void SetMtu(uint mtu)
         {
