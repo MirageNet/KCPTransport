@@ -8,6 +8,8 @@ using System.IO;
 using UnityEngine;
 using Random = UnityEngine.Random;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Net;
 
 namespace Mirror.KCP
 {
@@ -18,6 +20,8 @@ namespace Mirror.KCP
         KcpTransport transport;
         IConnection clientConnection;
         IConnection serverConnection;
+
+        Uri testUri;
 
         [UnitySetUp]
         public IEnumerator Setup() => UniTask.ToCoroutine(async () =>
@@ -42,6 +46,8 @@ namespace Mirror.KCP
                 Scheme = "kcp",
                 Port = port
             };
+
+            testUri = uriBuilder.Uri;
 
             Task<IConnection> connectTask = transport.ConnectAsync(uriBuilder.Uri);
 
@@ -134,5 +140,19 @@ namespace Mirror.KCP
             Assert.That(more, Is.False, "After some time of no activity, the client should disconnect");
         });
 
+        [Test]
+        public void TestServerUri()
+        {
+            Uri serverUri = transport.ServerUri().First();
+
+            Assert.That(serverUri.Port, Is.EqualTo(port));
+            Assert.That(serverUri.Scheme, Is.EqualTo(testUri.Scheme));
+        }
+
+        [Test]
+        public void IsSupportedTest()
+        {
+            Assert.That(transport.Supported, Is.True);
+        }
     }
 }
