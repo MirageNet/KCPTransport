@@ -59,7 +59,7 @@ namespace Mirror.KCP
         uint incr;
 
         int fastresend;
-        int nocwnd;
+        bool nocwnd;
         readonly List<Segment> sendQueue = new List<Segment>(16);
         readonly List<Segment> receiveQueue = new List<Segment>(16);
         readonly List<Segment> sendBuffer = new List<Segment>(16);
@@ -514,7 +514,7 @@ namespace Mirror.KCP
 
         void UpdateCwnd(uint s_una)
         {
-            if (nocwnd == 0 && snd_una > s_una && cwnd < RmtWnd)
+            if (!nocwnd && snd_una > s_una && cwnd < RmtWnd)
             {
                 uint _mss = Mss;
                 if (cwnd < ssthresh)
@@ -651,7 +651,7 @@ namespace Mirror.KCP
 
             // calculate window size
             uint cwnd_ = Math.Min(SendWindowMax, RmtWnd);
-            if (nocwnd == 0)
+            if (!nocwnd)
                 cwnd_ = Math.Min(cwnd, cwnd_);
 
             // sliding window, controlled by snd_nxt && sna_una+cwnd
@@ -748,7 +748,7 @@ namespace Mirror.KCP
             flushBuffer();
 
             // cwnd update
-            if (nocwnd == 0)
+            if (!nocwnd)
             {
                 // update ssthresh
                 // rate halving, https://tools.ietf.org/html/rfc6937
@@ -886,7 +886,7 @@ namespace Mirror.KCP
         /// <param name="interval">Interval of the internal working of the protocol, in milliseconds, such as 10ms or 20ms.</param>
         /// <param name="resend">fast retransmission mode, default 0 is off, 1 fast resend, 2 can be set (2 ACK crossings will directly retransmit).</param>
         /// <param name="nc">Whether to close the flow control (congestion), the default is 0 means not to close, 1 means to close.</param>
-        public void SetNoDelay(bool nodelay = false, uint interval = 40, int resend = 0, int nc = 0)
+        public void SetNoDelay(bool nodelay = false, uint interval = 40, int resend = 0, bool nc = false)
         {
             if (nodelay)
             {
@@ -906,8 +906,7 @@ namespace Mirror.KCP
             if (resend >= 0)
                 fastresend = resend;
 
-            if (nc >= 0)
-                nocwnd = nc;
+            nocwnd = nc;
         }
 
         /// <summary>SetWindowSize
