@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -34,41 +35,15 @@ namespace Mirror.KCP
             socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
             socket.DualMode = true;
             socket.Bind(new IPEndPoint(IPAddress.IPv6Any, Port));
-
-            ReadLoop();
-
-            Debug.Log("Listening");
             return Task.CompletedTask;
         }
 
-        private EndPoint newClientEP;
-        void ReadLoop()
+        EndPoint newClientEP = new IPEndPoint(IPAddress.IPv6Any, 0);
+        public void Update()
         {
-            newClientEP = new IPEndPoint(IPAddress.IPv6Any, 0);
-            socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP, ReceiveFrom, null);
-        }
-
-        private void ReceiveFrom(IAsyncResult ar)
-        {
-            int msgLength = 0;
-            try
-            {
-                msgLength = socket.EndReceiveFrom(ar, ref newClientEP);
-
+            while (socket != null && socket.Poll(0, SelectMode.SelectRead)) {
+                int msgLength = socket.ReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP);
                 RawInput(newClientEP, buffer, msgLength);
-                socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP, ReceiveFrom, null);
-            }
-            catch (SocketException)
-            {
-                // fine,  can be thrown if socket was closed
-            }
-            catch (ObjectDisposedException)
-            {
-                // socket has been closed,  perfectly fine.
-            }
-            catch(Exception ex)
-            {
-                Debug.LogException(ex);
             }
         }
 
@@ -98,6 +73,7 @@ namespace Mirror.KCP
             }*/
 
             socket?.Close();
+            socket = null;
         }
 
         /// <summary>

@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace Mirror.KCP
@@ -33,41 +34,30 @@ namespace Mirror.KCP
             socket.Connect(remoteEndpoint);
             SetupKcp();
 
-            ReceiveLoop();
+            _ = ReceiveLoop();
 
             await Handshake();
         }
 
-        void ReceiveLoop()
+        async UniTask ReceiveLoop()
         {
-            socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref remoteEndpoint, ReceiveFrom, null);
-        }
+            while (socket != null)
+            {
+                while (socket.Poll(0, SelectMode.SelectRead))
+                {
+                    int msgLength = socket.ReceiveFrom(buffer, ref remoteEndpoint);
+                    RawInput(buffer, msgLength);
+                }
 
-        private void ReceiveFrom(IAsyncResult ar)
-        {
-            try
-            {
-                int msgLength = socket.EndReceiveFrom(ar, ref remoteEndpoint);
-                RawInput(buffer, msgLength);
-                ReceiveLoop();
-            }
-            catch (SocketException)
-            {
-                // fine, can be thrown if socket is closed
-            }
-            catch (ObjectDisposedException)
-            {
-                // fine,  the socket has been closed, we can stop
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
+                // wait a few MS to poll again
+                await UniTask.Delay(2);
             }
         }
 
         protected override void Dispose()
         {
             socket.Close();
+            socket = null;
         }
 
         protected override void RawSend(byte[] data, int length)
