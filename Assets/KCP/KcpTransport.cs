@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -66,12 +65,6 @@ namespace Mirror.KCP
         /// </summary>
         public override void Disconnect()
         {
-            // disconnect all connections and stop listening to the port
-            /*foreach (KcpServerConnection connection in connectedClients.Values)
-            {
-                connection.Disconnect();
-            }*/
-
             socket?.Close();
             socket = null;
         }

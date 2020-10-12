@@ -20,7 +20,7 @@ namespace Mirror.KCP
         internal bool acked;
         internal ByteBuffer data;
 
-        private static readonly Stack<Segment> msSegmentPool = new Stack<Segment>(32);
+        static readonly Stack<Segment> msSegmentPool = new Stack<Segment>(32);
 
         public static Segment Get(int size)
         {
@@ -39,7 +39,7 @@ namespace Mirror.KCP
             msSegmentPool.Push(seg);
         }
 
-        private Segment(int size)
+        Segment(int size)
         {
             data = ByteBuffer.Allocate(size, true);
         }
