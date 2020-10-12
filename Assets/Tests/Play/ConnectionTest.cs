@@ -52,9 +52,9 @@ namespace Mirror.KCP
         [UnityTearDown]
         public IEnumerator TearDown()
         {
-            transport.Disconnect();
             clientConnection?.Disconnect();
             serverConnection?.Disconnect();
+            transport.Disconnect();
 
             UnityEngine.Object.Destroy(transport.gameObject);
             // wait a frame so object will be destroyed

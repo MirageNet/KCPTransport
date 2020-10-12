@@ -37,6 +37,7 @@ namespace Mirror.KCP
 
             ReadLoop();
 
+            Debug.Log("Listening");
             return Task.CompletedTask;
         }
 
@@ -53,8 +54,14 @@ namespace Mirror.KCP
             try
             {
                 msgLength = socket.EndReceiveFrom(ar, ref newClientEP);
+
+                Debug.Log($"Server received {msgLength}");
                 RawInput(newClientEP, buffer, msgLength);
                 socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP, ReceiveFrom, null);
+            }
+            catch (SocketException)
+            {
+                // fine,  can be thrown if socket was closed
             }
             catch (ObjectDisposedException)
             {
@@ -141,7 +148,10 @@ namespace Mirror.KCP
         {
             var client = new KcpClientConnection();
 
-            await client.ConnectAsync(uri.Host, (ushort)uri.Port);
+            ushort port = (ushort)(uri.IsDefaultPort? Port : uri.Port);
+
+            if (uri.IsDefaultPort)
+            await client.ConnectAsync(uri.Host, port);
             return client;
         }
     }
