@@ -32,10 +32,6 @@ namespace Mirror.KCP
         protected void SetupKcp()
         {
             kcp = new KCP(0, RawSend);
-            // normal:  false, 40, 2, 1
-            // fast:    false, 30, 2, 1
-            // fast2:   true, 20, 2, 1
-            // fast3:   true, 10, 2, 1
             kcp.SetNoDelay(false, 40, 2, 1);
             open = true;
 
