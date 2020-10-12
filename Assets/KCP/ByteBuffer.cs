@@ -59,14 +59,6 @@ namespace Mirror.KCP
             value |= value >> 8;
             value |= value >> 16;
             return value + 1;
-            //int n = 2;
-            //int b = 2;
-            //while (b < length)
-            //{
-            //    b = 2 << n;
-            //    n++;
-            //}
-            //return b;
         }
 
         /// <summary>
