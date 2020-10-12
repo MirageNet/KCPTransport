@@ -18,7 +18,7 @@ namespace Mirror.KCP
         public const int ASK_TELL = 2;  // need to send CMD_WINS
         public const int WND_SND = 32;
         public const int WND_RCV = 32;
-        public const int MTU_DEF = 1400;
+        public const int MTU_DEF = 1200; //MTU Default.
         public const int ACK_FAST = 3;
         public const int INTERVAL = 100;
         public const int OVERHEAD = 24;
