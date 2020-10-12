@@ -316,8 +316,7 @@ namespace Mirror.KCP
                     break;
             }
 
-            if (count > 0)
-                sendBuffer.RemoveRange(0, count);
+            sendBuffer.RemoveRange(0, count);
         }
 
         void AckPush(uint sn, uint ts)
@@ -373,12 +372,9 @@ namespace Mirror.KCP
                 }
             }
 
-            if (count > 0)
-            {
-                for (int i = 0; i < count; i++)
-                    receiveQueue.Add(receiveBuffer[i]);
-                receiveBuffer.RemoveRange(0, count);
-            }
+            for (int i = 0; i < count; i++)
+                receiveQueue.Add(receiveBuffer[i]);
+            receiveBuffer.RemoveRange(0, count);
             return repeat;
         }
 
@@ -674,10 +670,7 @@ namespace Mirror.KCP
                 newSegsCount++;
             }
 
-            if (newSegsCount > 0)
-            {
-                sendQueue.RemoveRange(0, newSegsCount);
-            }
+            sendQueue.RemoveRange(0, newSegsCount);
 
             // calculate resent
             uint resent = (uint)fastresend;
