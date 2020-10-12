@@ -10,8 +10,6 @@ namespace Mirror.KCP
         static readonly List<ByteBuffer> pool = new List<ByteBuffer>();
         const int PoolMaxCount = 200;
 
-        bool isPool;
-
         ByteBuffer(int capacity)
         {
             RawBuffer = new byte[capacity];
@@ -29,28 +27,17 @@ namespace Mirror.KCP
         /// When true, the actual capacity value of the object obtained from the pool
         /// </param>
         /// <returns>ByteBuffer object</returns>
-        public static ByteBuffer Allocate(int capacity, bool fromPool = false)
+        public static ByteBuffer Allocate(int capacity)
         {
-            if (!fromPool)
-            {
-                return new ByteBuffer(capacity);
-            }
             ByteBuffer bbuf;
             if (pool.Count == 0)
             {
-                bbuf = new ByteBuffer(capacity)
-                {
-                    isPool = true
-                };
+                bbuf = new ByteBuffer(capacity);
                 return bbuf;
             }
             int lastIndex = pool.Count - 1;
             bbuf = pool[lastIndex];
             pool.RemoveAt(lastIndex);
-            if (!bbuf.isPool)
-            {
-                bbuf.isPool = true;
-            }
             return bbuf;
             
         }
@@ -158,16 +145,12 @@ namespace Mirror.KCP
 
         public void Dispose()
         {
-            if (isPool)
+            if (pool.Count < PoolMaxCount)
             {
-                if (pool.Count < PoolMaxCount)
-                {
-                    Clear();
-                    pool.Add(this);
-                    return;
-                }
+                Clear();
+                pool.Add(this);
+                return;
             }
-
             readIndex = 0;
             writeIndex = 0;
             Capacity = 0;
