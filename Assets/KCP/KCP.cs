@@ -420,7 +420,8 @@ namespace Mirror.KCP
 
                 offset += Utils.Decode32U(data, offset, ref conv_);
 
-                if (conv != conv_) return -1;
+                if (conv != conv_)
+                    return -1;
 
                 offset += Utils.Decode8u(data, offset, ref cmd);
                 offset += Utils.Decode8u(data, offset, ref frg);
@@ -430,7 +431,8 @@ namespace Mirror.KCP
                 offset += Utils.Decode32U(data, offset, ref una);
                 offset += Utils.Decode32U(data, offset, ref length);
 
-                if (size - (offset - index) < length) return -2;
+                if (size - (offset - index) < length)
+                    return -2;
 
                 switch (cmd)
                 {
