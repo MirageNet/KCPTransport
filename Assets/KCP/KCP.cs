@@ -31,7 +31,7 @@ namespace Mirror.KCP
 
         readonly Stopwatch refTime = new Stopwatch();
 
-        internal struct ackItem
+        internal struct AckItem
         {
             internal uint serialNumber;
             internal uint timestamp;
@@ -64,7 +64,7 @@ namespace Mirror.KCP
         readonly List<Segment> receiveQueue = new List<Segment>(16);
         readonly List<Segment> sendBuffer = new List<Segment>(16);
         readonly List<Segment> receiveBuffer = new List<Segment>(16);
-        readonly List<ackItem> ackList = new List<ackItem>(16);
+        readonly List<AckItem> ackList = new List<AckItem>(16);
 
         byte[] buffer;
         uint reserved = 0;
@@ -368,7 +368,7 @@ namespace Mirror.KCP
 
         void AckPush(uint sn, uint ts)
         {
-            ackList.Add(new ackItem { serialNumber = sn, timestamp = ts });
+            ackList.Add(new AckItem { serialNumber = sn, timestamp = ts });
         }
 
         bool ParseData(Segment newseg)
@@ -639,7 +639,7 @@ namespace Mirror.KCP
             for (int i = 0; i < ackList.Count; i++)
             {
                 makeSpace(OVERHEAD);
-                ackItem ack = ackList[i];
+                AckItem ack = ackList[i];
                 if (ack.serialNumber >= rcv_nxt || ackList.Count - 1 == i)
                 {
                     seg.sn = ack.serialNumber;
@@ -742,7 +742,7 @@ namespace Mirror.KCP
             {
                 Segment segment = sendBuffer[k];
                 bool needSend = false;
-                if (segment.acked == true)
+                if (segment.acked)
                     continue;
                 if (segment.xmit == 0)  // initial transmit
                 {
