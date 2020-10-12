@@ -55,7 +55,6 @@ namespace Mirror.KCP
             {
                 msgLength = socket.EndReceiveFrom(ar, ref newClientEP);
 
-                Debug.Log($"Server received {msgLength}");
                 RawInput(newClientEP, buffer, msgLength);
                 socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP, ReceiveFrom, null);
             }
@@ -93,10 +92,10 @@ namespace Mirror.KCP
         public override void Disconnect()
         {
             // disconnect all connections and stop listening to the port
-            foreach (KcpServerConnection connection in connectedClients.Values)
+            /*foreach (KcpServerConnection connection in connectedClients.Values)
             {
                 connection.Disconnect();
-            }
+            }*/
 
             socket?.Close();
         }
