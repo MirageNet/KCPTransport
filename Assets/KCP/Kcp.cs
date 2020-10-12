@@ -739,36 +739,41 @@ namespace Mirror.KCP
             // cwnd update
             if (!nocwnd)
             {
-                // update ssthresh
-                // rate halving, https://tools.ietf.org/html/rfc6937
-                if (change > 0)
-                {
-                    uint inflght = snd_nxt - snd_una;
-                    ssthresh = inflght / 2;
-                    if (ssthresh < THRESH_MIN)
-                        ssthresh = THRESH_MIN;
-                    cwnd = ssthresh + resent;
-                    incr = cwnd * Mss;
-                }
-
-                // congestion control, https://tools.ietf.org/html/rfc5681
-                if (lostSegs > 0)
-                {
-                    ssthresh = cwnd / 2;
-                    if (ssthresh < THRESH_MIN)
-                        ssthresh = THRESH_MIN;
-                    cwnd = 1;
-                    incr = Mss;
-                }
-
-                if (cwnd < 1)
-                {
-                    cwnd = 1;
-                    incr = Mss;
-                }
+                CwndUpdate(resent, change, lostSegs);
             }
 
             return (uint)minrto;
+        }
+
+        private void CwndUpdate(uint resent, ulong change, ulong lostSegs)
+        {
+            // update ssthresh
+            // rate halving, https://tools.ietf.org/html/rfc6937
+            if (change > 0)
+            {
+                uint inflght = snd_nxt - snd_una;
+                ssthresh = inflght / 2;
+                if (ssthresh < THRESH_MIN)
+                    ssthresh = THRESH_MIN;
+                cwnd = ssthresh + resent;
+                incr = cwnd * Mss;
+            }
+
+            // congestion control, https://tools.ietf.org/html/rfc5681
+            if (lostSegs > 0)
+            {
+                ssthresh = cwnd / 2;
+                if (ssthresh < THRESH_MIN)
+                    ssthresh = THRESH_MIN;
+                cwnd = 1;
+                incr = Mss;
+            }
+
+            if (cwnd < 1)
+            {
+                cwnd = 1;
+                incr = Mss;
+            }
         }
 
         /// <summary>Update
