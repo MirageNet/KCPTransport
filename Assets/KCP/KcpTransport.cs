@@ -29,7 +29,7 @@ namespace Mirror.KCP
         /// </summary>
         /// <exception>If we cannot start the transport</exception>
         /// <returns></returns>
-        public override Task ListenAsync()
+        public override UniTask ListenAsync()
         {
             socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
             socket.DualMode = true;
@@ -37,8 +37,7 @@ namespace Mirror.KCP
 
             ReadLoop();
 
-            Debug.Log("Listening");
-            return Task.CompletedTask;
+            return UniTask.CompletedTask;
         }
 
         private EndPoint newClientEP;
@@ -54,8 +53,6 @@ namespace Mirror.KCP
             try
             {
                 msgLength = socket.EndReceiveFrom(ar, ref newClientEP);
-
-                Debug.Log($"Server received {msgLength}");
                 RawInput(newClientEP, buffer, msgLength);
                 socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP, ReceiveFrom, null);
             }
@@ -107,7 +104,7 @@ namespace Mirror.KCP
         ///     then you get the connection to the client
         /// </summary>
         /// <returns>The connection to a client</returns>
-        public override async Task<IConnection> AcceptAsync()
+        public override async UniTask<IConnection> AcceptAsync()
         {
             KcpServerConnection connection = await acceptedConnections.Reader.ReadAsync();
 
@@ -144,7 +141,7 @@ namespace Mirror.KCP
         /// <param name="uri">address of the server to connect to</param>
         /// <returns>The connection to the server</returns>
         /// <exception>If connection cannot be established</exception>
-        public override async Task<IConnection> ConnectAsync(Uri uri)
+        public override async UniTask<IConnection> ConnectAsync(Uri uri)
         {
             var client = new KcpClientConnection();
 
