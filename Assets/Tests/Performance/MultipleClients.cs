@@ -40,12 +40,6 @@ namespace Mirror.KCP
             // load host
             server = Object.FindObjectOfType<NetworkServer>();
 
-            if (server == null)
-            {
-                Assert.Fail("Could not find Benchmarker");
-                yield break;
-            }
-
             server.Authenticated.AddListener(conn => server.SetClientReady(conn));
 
             System.Threading.Tasks.Task task = server.ListenAsync();
