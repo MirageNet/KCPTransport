@@ -615,11 +615,9 @@ namespace Mirror.KCP
                 {
                     if (current >= ts_probe)
                     {
-                        if (probe_wait < PROBE_INIT)
-                            probe_wait = PROBE_INIT;
+                        probe_wait = Math.Max(probe_wait, PROBE_INIT);
                         probe_wait += probe_wait / 2;
-                        if (probe_wait > PROBE_LIMIT)
-                            probe_wait = PROBE_LIMIT;
+                        probe_wait = Math.Min(probe_wait, PROBE_LIMIT);
                         ts_probe = current + probe_wait;
                         probe |= ASK_SEND;
                     }
