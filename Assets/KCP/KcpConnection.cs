@@ -83,7 +83,7 @@ namespace Mirror.KCP
 
         volatile bool isWaiting = false;
 
-        readonly AutoResetUniTaskCompletionSource dataAvailable = AutoResetUniTaskCompletionSource.Create();
+        UniTaskCompletionSource dataAvailable;
 
         internal void RawInput(byte[] buffer, int msgLength)
         {
@@ -114,14 +114,11 @@ namespace Mirror.KCP
         /// <returns>true if we got a message, false if we got disconnected</returns>
         public async Task<bool> ReceiveAsync(MemoryStream buffer)
         {
-            if (!open)
-                return false;
-
             int msgSize = kcp.PeekSize();
 
-            if (msgSize < 0)
-            {
+            while (msgSize < 0 && open) { 
                 isWaiting = true;
+                dataAvailable = new UniTaskCompletionSource();
                 await dataAvailable.Task;
                 isWaiting = false;
                 msgSize = kcp.PeekSize();
@@ -129,12 +126,6 @@ namespace Mirror.KCP
 
             if (!open)
                 return false;
-
-            if (msgSize <=0 )
-            {
-                // disconnected
-                return false;
-            }
 
             // we have some data,  return it
             buffer.SetLength(msgSize);
