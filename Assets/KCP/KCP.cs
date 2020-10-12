@@ -834,6 +834,7 @@ namespace Mirror.KCP
         /// <para>Important to reduce unnacessary update invoking. use it to
         /// schedule update (eg. implementing an epoll-like mechanism, or
         /// optimize update when handling massive kcp connections)</para>
+        /// <remark> Standard KCP returns time as current + delta.  This version returns delta</remark>
         /// </summary>
         public int Check()
         {
