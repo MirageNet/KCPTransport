@@ -150,7 +150,6 @@ namespace Mirror.KCP
 
             ushort port = (ushort)(uri.IsDefaultPort? Port : uri.Port);
 
-            if (uri.IsDefaultPort)
             await client.ConnectAsync(uri.Host, port);
             return client;
         }
