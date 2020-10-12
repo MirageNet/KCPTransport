@@ -524,40 +524,34 @@ namespace Mirror.KCP
 
         void UpdateCwnd(uint s_una)
         {
-            if (nocwnd == 0)
+            if (nocwnd == 0 && snd_una > s_una && cwnd < RmtWnd)
             {
-                if (snd_una > s_una)
+                uint _mss = Mss;
+                if (cwnd < ssthresh)
                 {
-                    if (cwnd < RmtWnd)
+                    cwnd++;
+                    incr += _mss;
+                }
+                else
+                {
+                    if (incr < _mss)
+                        incr = _mss;
+
+                    incr += _mss * _mss / incr + _mss / 16;
+
+                    if ((cwnd + 1) * _mss <= incr)
                     {
-                        uint _mss = Mss;
-                        if (cwnd < ssthresh)
-                        {
-                            cwnd++;
-                            incr += _mss;
-                        }
+                        if (_mss > 0)
+                            cwnd = (incr + _mss - 1) / _mss;
                         else
-                        {
-                            if (incr < _mss)
-                                incr = _mss;
-
-                            incr += _mss * _mss / incr + _mss / 16;
-
-                            if ((cwnd + 1) * _mss <= incr)
-                            {
-                                if (_mss > 0)
-                                    cwnd = (incr + _mss - 1) / _mss;
-                                else
-                                    cwnd = incr + _mss - 1;
-                            }
-                        }
-                        if (cwnd > RmtWnd)
-                        {
-                            cwnd = RmtWnd;
-                            incr = RmtWnd * _mss;
-                        }
+                            cwnd = incr + _mss - 1;
                     }
                 }
+                if (cwnd > RmtWnd)
+                {
+                    cwnd = RmtWnd;
+                    incr = RmtWnd * _mss;
+                }                
             }
         }
 
