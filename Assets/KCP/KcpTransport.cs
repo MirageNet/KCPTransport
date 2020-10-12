@@ -53,13 +53,17 @@ namespace Mirror.KCP
             try
             {
                 msgLength = socket.EndReceiveFrom(ar, ref newClientEP);
+                RawInput(newClientEP, buffer, msgLength);
+                socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP, ReceiveFrom, null);
+            }
+            catch (ObjectDisposedException)
+            {
+                // socket has been closed,  perfectly fine.
             }
             catch(Exception ex)
             {
                 Debug.LogException(ex);
             }
-            RawInput(newClientEP, buffer, msgLength);
-            socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP, ReceiveFrom, null);
         }
 
         void RawInput(EndPoint endpoint, byte[] data, int msgLength)
