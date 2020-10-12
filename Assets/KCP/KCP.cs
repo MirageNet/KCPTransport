@@ -39,15 +39,24 @@ namespace Mirror.KCP
         }
 
         // kcp members.
-        readonly uint conv; uint mtu;
-        uint snd_una; uint snd_nxt; uint rcv_nxt;
+        readonly uint conv;
+        uint mtu;
+        uint snd_una;
+        uint snd_nxt;
+        uint rcv_nxt;
         uint ssthresh;
-        uint rx_rttval; uint rx_srtt;
-        uint rx_rto; uint rx_minrto;
-        uint cwnd; uint probe;
-        uint interval; uint ts_flush;
-        bool noDelay; bool updated;
-        uint ts_probe; uint probe_wait;
+        uint rx_rttval;
+        uint rx_srtt;
+        uint rx_rto;
+        uint rx_minrto;
+        uint cwnd;
+        uint probe;
+        uint interval;
+        uint ts_flush;
+        bool noDelay;
+        bool updated;
+        uint ts_probe;
+        uint probe_wait;
         uint incr;
 
         int fastresend;
