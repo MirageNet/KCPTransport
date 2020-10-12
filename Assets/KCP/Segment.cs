@@ -24,14 +24,11 @@ namespace Mirror.KCP
 
         public static Segment Get(int size)
         {
-            lock (msSegmentPool)
+            if (msSegmentPool.Count > 0)
             {
-                if (msSegmentPool.Count > 0)
-                {
-                    Segment seg = msSegmentPool.Pop();
-                    seg.data = ByteBuffer.Allocate(size, true);
-                    return seg;
-                }
+                Segment seg = msSegmentPool.Pop();
+                seg.data = ByteBuffer.Allocate(size, true);
+                return seg;
             }
             return new Segment(size);
         }
@@ -39,10 +36,7 @@ namespace Mirror.KCP
         public static void Put(Segment seg)
         {
             seg.Reset();
-            lock (msSegmentPool)
-            {
-                msSegmentPool.Push(seg);
-            }
+            msSegmentPool.Push(seg);
         }
 
         private Segment(int size)

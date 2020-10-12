@@ -35,26 +35,24 @@ namespace Mirror.KCP
             {
                 return new ByteBuffer(capacity);
             }
-            lock (pool)
+            ByteBuffer bbuf;
+            if (pool.Count == 0)
             {
-                ByteBuffer bbuf;
-                if (pool.Count == 0)
+                bbuf = new ByteBuffer(capacity)
                 {
-                    bbuf = new ByteBuffer(capacity)
-                    {
-                        isPool = true
-                    };
-                    return bbuf;
-                }
-                int lastIndex = pool.Count - 1;
-                bbuf = pool[lastIndex];
-                pool.RemoveAt(lastIndex);
-                if (!bbuf.isPool)
-                {
-                    bbuf.isPool = true;
-                }
+                    isPool = true
+                };
                 return bbuf;
             }
+            int lastIndex = pool.Count - 1;
+            bbuf = pool[lastIndex];
+            pool.RemoveAt(lastIndex);
+            if (!bbuf.isPool)
+            {
+                bbuf.isPool = true;
+            }
+            return bbuf;
+            
         }
 
         /// <summary>
@@ -163,14 +161,11 @@ namespace Mirror.KCP
         {
             if (isPool)
             {
-                lock (pool)
+                if (pool.Count < PoolMaxCount)
                 {
-                    if (pool.Count < PoolMaxCount)
-                    {
-                        Clear();
-                        pool.Add(this);
-                        return;
-                    }
+                    Clear();
+                    pool.Add(this);
+                    return;
                 }
             }
 
