@@ -61,6 +61,10 @@ namespace Mirror.KCP
                     await UniTask.Delay(check);
                 }
             }
+            catch (SocketException)
+            {
+                // this is ok, the connection was closed
+            }
             catch (ObjectDisposedException)
             {
                 // fine,  socket was closed,  no more ticking needed
@@ -72,7 +76,7 @@ namespace Mirror.KCP
             finally
             {
                 open = false;
-                dataAvailable.TrySetResult();
+                dataAvailable?.TrySetResult();
                 Dispose();
             }
         }
@@ -95,7 +99,7 @@ namespace Mirror.KCP
             {
                 // we just got a full message
                 // Let the receivers know
-                dataAvailable.TrySetResult();
+                dataAvailable?.TrySetResult();
             }
         }
 
@@ -162,13 +166,17 @@ namespace Mirror.KCP
         public virtual void Disconnect()
         {
             // send a disconnect message and disconnect
-            if (open)
+            if (open && socket.Connected)
             {
                 try
                 {
 
                     _ = SendAsync(Goodby);
                     kcp.Flush(false);
+                }
+                catch (SocketException)
+                {
+                    // this is ok,  the connection was already closed
                 }
                 catch (ObjectDisposedException)
                 {
@@ -183,7 +191,7 @@ namespace Mirror.KCP
             open = false;
 
             // EOF is now available
-            dataAvailable.TrySetResult();
+            dataAvailable?.TrySetResult();
         }
 
         /// <summary>
