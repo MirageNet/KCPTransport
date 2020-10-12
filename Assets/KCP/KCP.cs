@@ -913,7 +913,7 @@ namespace Mirror.KCP
         /// <param name="interval">Interval of the internal working of the protocol, in milliseconds, such as 10ms or 20ms.</param>
         /// <param name="resend">fast retransmission mode, default 0 is off, 1 fast resend, 2 can be set (2 ACK crossings will directly retransmit).</param>
         /// <param name="nc">Whether to close the flow control (congestion), the default is 0 means not to close, 1 means to close.</param>
-        public void SetNoDelay(bool nodelay, uint interval = 40, int resend = 0, int nc = 0)
+        public void SetNoDelay(bool nodelay = false, uint interval = 40, int resend = 0, int nc = 0)
         {
             if (nodelay)
             {

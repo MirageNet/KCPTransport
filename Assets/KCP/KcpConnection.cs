@@ -32,7 +32,7 @@ namespace Mirror.KCP
         protected void SetupKcp()
         {
             kcp = new KCP(0, RawSend);
-            kcp.SetNoDelay(false, 40, 2, 1);
+            kcp.SetNoDelay();
             open = true;
 
             _ = Tick();
