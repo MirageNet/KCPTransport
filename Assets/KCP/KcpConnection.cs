@@ -120,7 +120,6 @@ namespace Mirror.KCP
                 isWaiting = true;
                 dataAvailable = new UniTaskCompletionSource();
                 await dataAvailable.Task;
-                await UniTask.SwitchToMainThread();
                 isWaiting = false;
                 msgSize = kcp.PeekSize();
             }
