@@ -211,9 +211,6 @@ namespace Mirror.KCP
             if (length == 0)
                 throw new ArgumentException("You cannot send a packet with a length of 0.");
 
-            if (length == 0)
-                return;
-
             int count;
             if (length <= Mss)
                 count = 1;
