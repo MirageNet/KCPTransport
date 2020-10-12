@@ -33,35 +33,34 @@ namespace Mirror.KCP
             socket.Connect(remoteEndpoint);
             SetupKcp();
 
-            ReceiveLoop();
+            ReadLoop();
 
             await Handshake();
         }
 
-        void ReceiveLoop()
+        void ReadLoop()
         {
-            socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref remoteEndpoint, ReceiveFrom, null);
+            var saea = new SocketAsyncEventArgs();
+            saea.Completed += ReceivedPacket;
+
+            ReceiveFrom(saea);
         }
 
-        private void ReceiveFrom(IAsyncResult ar)
+        private void ReceiveFrom(SocketAsyncEventArgs saea)
         {
-            try
+            saea.RemoteEndPoint = remoteEndpoint;
+            saea.SetBuffer(buffer, 0, buffer.Length);
+
+            if (!socket.ReceiveFromAsync(saea))
+                ReceivedPacket(null, saea);
+        }
+
+        private void ReceivedPacket(object sender, SocketAsyncEventArgs saea)
+        {
+            if (saea.SocketError == SocketError.Success)
             {
-                int msgLength = socket.EndReceiveFrom(ar, ref remoteEndpoint);
-                RawInput(buffer, msgLength);
-                ReceiveLoop();
-            }
-            catch (SocketException)
-            {
-                // fine, can be thrown if socket is closed
-            }
-            catch (ObjectDisposedException)
-            {
-                // fine,  the socket has been closed, we can stop
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
+                RawInput(saea.Buffer, saea.Count);
+                ReceiveFrom(saea);
             }
         }
 

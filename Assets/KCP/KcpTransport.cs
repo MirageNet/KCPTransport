@@ -22,6 +22,7 @@ namespace Mirror.KCP
 
         public override IEnumerable<string> Scheme => new[] { "kcp" };
 
+        #region listening
         readonly byte[] buffer = new byte[1500];
         /// <summary>
         ///     Open up the port and listen for connections
@@ -37,38 +38,33 @@ namespace Mirror.KCP
 
             ReadLoop();
 
-            Debug.Log("Listening");
             return Task.CompletedTask;
         }
 
-        private EndPoint newClientEP;
         void ReadLoop()
         {
-            newClientEP = new IPEndPoint(IPAddress.IPv6Any, 0);
-            socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP, ReceiveFrom, null);
+            var saea = new SocketAsyncEventArgs();
+            saea.Completed += ReceivedPacket;
+
+            ReceiveFrom(saea);
         }
 
-        private void ReceiveFrom(IAsyncResult ar)
+        private void ReceiveFrom(SocketAsyncEventArgs saea)
         {
-            int msgLength = 0;
-            try
-            {
-                msgLength = socket.EndReceiveFrom(ar, ref newClientEP);
+            var newClientEP = new IPEndPoint(IPAddress.IPv6Any, 0);
+            saea.RemoteEndPoint = newClientEP;
+            saea.SetBuffer(buffer, 0, buffer.Length);
 
-                RawInput(newClientEP, buffer, msgLength);
-                socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP, ReceiveFrom, null);
-            }
-            catch (SocketException)
+            if (!socket.ReceiveFromAsync(saea))
+                ReceivedPacket(null, saea);
+        }
+
+        private void ReceivedPacket(object sender, SocketAsyncEventArgs saea)
+        {
+            if (saea.SocketError == SocketError.Success)
             {
-                // fine,  can be thrown if socket was closed
-            }
-            catch (ObjectDisposedException)
-            {
-                // socket has been closed,  perfectly fine.
-            }
-            catch(Exception ex)
-            {
-                Debug.LogException(ex);
+                RawInput(saea.RemoteEndPoint, saea.Buffer, saea.Count);
+                ReceiveFrom(saea);
             }
         }
 
@@ -85,6 +81,7 @@ namespace Mirror.KCP
 
             connection.RawInput(data, msgLength);
         }
+        #endregion
 
         /// <summary>
         ///     Stop listening to the port
