@@ -80,7 +80,7 @@ jobs:
           projectKey: MirrorNG_KCPTransport
           projectName: MirrorNG KCPTransport
           sonarOrganisation: mirrorng
-          beginArguments: /d:sonar.verbose="true" /d:sonar.cs.nunit.reportsPaths=Tests/playmode-results.xml /d:sonar.cs.opencover.reportsPaths=Tests/workspace-opencov/EditMode/TestCoverageResults_0000.xml
+          beginArguments: /d:sonar.verbose="true" /d:sonar.cs.nunit.reportsPaths=Tests/playmode-results.xml /d:sonar.cs.opencover.reportsPaths=Tests/workspace-opencov/PlayMode/TestCoverageResults_0000.xml
         env:
           FrameworkPathOverride: /opt/Unity/Editor/Data/MonoBleedingEdge/
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
