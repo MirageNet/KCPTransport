@@ -324,11 +324,11 @@ namespace Mirror.KCP
             ackList.Add(new AckItem { serialNumber = sn, timestamp = ts });
         }
 
-        bool ParseData(Segment newseg)
+        void ParseData(Segment newseg)
         {
             uint sn = newseg.sn;
             if (sn >= rcv_nxt + ReceiveWindowMax || sn < rcv_nxt)
-                return true;
+                return;
 
             int n = receiveBuffer.Count - 1;
             int insert_idx = 0;
@@ -375,7 +375,6 @@ namespace Mirror.KCP
             for (int i = 0; i < count; i++)
                 receiveQueue.Add(receiveBuffer[i]);
             receiveBuffer.RemoveRange(0, count);
-            return repeat;
         }
 
         /// <summary>Input
@@ -467,7 +466,7 @@ namespace Mirror.KCP
                             seg.sn = sn;
                             seg.una = una;
                             seg.data.WriteBytes(data, offset, (int)length);
-                            _ = ParseData(seg);
+                            ParseData(seg);
                         }
                     }
                 }
