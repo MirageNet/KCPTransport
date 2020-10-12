@@ -29,8 +29,7 @@ namespace Mirror.KCP
         public const int PROBE_LIMIT = 120000; // up to 120 secs to probe window
         public const int SN_OFFSET = 12;
 
-
-        private readonly Stopwatch refTime = new Stopwatch();
+        readonly Stopwatch refTime = new Stopwatch();
 
         internal struct ackItem
         {
