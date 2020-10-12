@@ -136,17 +136,6 @@ namespace Mirror.KCP
         /// <para>Return -1 when there is no readable data.</para>
         /// <para>Return -2 if len(buffer) is smaller than kcp.PeekSize().</para></summary>
         /// <param name="buffer"></param>
-        public int Receive(byte[] buffer)
-        {
-            return Receive(buffer, 0, buffer.Length);
-        }
-
-        /// <summary>Receive
-        /// Receive data from kcp state machine
-        /// <para>Return number of bytes read.</para>
-        /// <para>Return -1 when there is no readable data.</para>
-        /// <para>Return -2 if len(buffer) is smaller than kcp.PeekSize().</para></summary>
-        /// <param name="buffer"></param>
         /// <param name="index"></param>
         /// <param name="length"></param>
         public int Receive(byte[] buffer, int index, int length)
