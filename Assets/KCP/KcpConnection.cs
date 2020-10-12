@@ -131,7 +131,7 @@ namespace Mirror.KCP
             buffer.SetLength(msgSize);
             buffer.Position = 0;
             buffer.TryGetBuffer(out ArraySegment<byte> data);
-            kcp.Recv(data.Array, data.Offset, data.Count);
+            kcp.Receive(data.Array, data.Offset, data.Count);
 
             // if we receive a disconnect message,  then close everything
             

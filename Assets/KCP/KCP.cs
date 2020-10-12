@@ -83,8 +83,9 @@ namespace Mirror.KCP
 
         public bool StreamEnabled { get; set; }
 
-        // create a new kcp control object, 'conv' must equal in two endpoint
-        // from the same connection.
+        /// <summary>create a new kcp control object</summary>
+        /// <param name="conv_">must equal in two endpoint from the same connection.</param>
+        /// <param name="output_"></param>
         public KCP(uint conv_, Action<byte[], int> output_)
         {
             conv = conv_;
@@ -102,7 +103,8 @@ namespace Mirror.KCP
             refTime.Start();
         }
 
-        // check the size of next message in the recv queue
+        /// <summary>PeekSize
+        /// check the size of next message in the recv queue</summary>
         public int PeekSize()
         {
             if (receiveQueue.Count == 0)
@@ -128,20 +130,26 @@ namespace Mirror.KCP
             return length;
         }
 
-
-        public int Recv(byte[] buffer)
+        /// <summary>Receive
+        /// Receive data from kcp state machine
+        /// <para>Return number of bytes read.</para>
+        /// <para>Return -1 when there is no readable data.</para>
+        /// <para>Return -2 if len(buffer) is smaller than kcp.PeekSize().</para></summary>
+        /// <param name="buffer"></param>
+        public int Receive(byte[] buffer)
         {
-            return Recv(buffer, 0, buffer.Length);
+            return Receive(buffer, 0, buffer.Length);
         }
 
-        // Receive data from kcp state machine
-        //
-        // Return number of bytes read.
-        //
-        // Return -1 when there is no readable data.
-        //
-        // Return -2 if len(buffer) is smaller than kcp.PeekSize().
-        public int Recv(byte[] buffer, int index, int length)
+        /// <summary>Receive
+        /// Receive data from kcp state machine
+        /// <para>Return number of bytes read.</para>
+        /// <para>Return -1 when there is no readable data.</para>
+        /// <para>Return -2 if len(buffer) is smaller than kcp.PeekSize().</para></summary>
+        /// <param name="buffer"></param>
+        /// <param name="index"></param>
+        /// <param name="length"></param>
+        public int Receive(byte[] buffer, int index, int length)
         {
             int peekSize = PeekSize();
             if (peekSize < 0)
@@ -206,12 +214,19 @@ namespace Mirror.KCP
             return n - index;
         }
 
+        /// <summary>Send
+        /// <para>user/upper level send</para></summary>
+        /// <param name="buffer"></param>
         public void Send(byte[] buffer)
         {
             Send(buffer, 0, buffer.Length);
         }
 
-        // user/upper level send
+        /// <summary>Send
+        /// <para>user/upper level send</para></summary>
+        /// <param name="buffer"></param>
+        /// <param name="index"></param>
+        /// <param name="length"></param>
         public void Send(byte[] buffer, int index, int length)
         {
             if (length == 0)
@@ -413,10 +428,13 @@ namespace Mirror.KCP
             return repeat;
         }
 
-        // Input when you received a low level packet (eg. UDP packet), call it
-        // regular indicates a regular packet has received(not from FEC)
-        // 
-        // 'ackNoDelay' will trigger immediate ACK, but surely it will not be efficient in bandwidth
+        /// <summary>Input
+        /// <para>Used when you receive a low level packet (eg. UDP packet)</para></summary>
+        /// <param name="data"></param>
+        /// <param name="index"></param>
+        /// <param name="size"></param>
+        /// <param name="regular">regular indicates a regular packet has received(not from FEC)</param>
+        /// <param name="ackNoDelay">will trigger immediate ACK, but surely it will not be efficient in bandwidth</param>
         public int Input(byte[] data, int index, int size, bool regular, bool ackNoDelay)
         {
             uint s_una = snd_una;
@@ -588,7 +606,8 @@ namespace Mirror.KCP
             return 0;
         }
 
-        // flush pending data
+        /// <summary>Flush</summary>
+        /// <param name="ackOnly">flush remain ack segments</param>
         public uint Flush(bool ackOnly)
         {
             var seg = Segment.Get(32);
@@ -630,7 +649,7 @@ namespace Mirror.KCP
             }
             ackList.Clear();
 
-            // flash remain ack segments
+            // flush remain ack segments
             if (ackOnly)
             {
                 flushBuffer();
@@ -820,9 +839,10 @@ namespace Mirror.KCP
             return (uint)minrto;
         }
 
-        // update state (call it repeatedly, every 10ms-100ms), or you can ask
-        // check when to call it again (without input/_send calling).
-        // 'current' - current timestamp in millisec.
+        /// <summary>Update
+        /// Determine when should you invoke update
+        /// <para>update state (call it repeatedly, every 10ms-100ms)</para>
+        /// </summary>
         public void Update()
         {
             uint current = CurrentMS;
@@ -850,13 +870,15 @@ namespace Mirror.KCP
             }
         }
 
-        // Determine when should you invoke update:
-        // returns when you should invoke update in millisec, if there
-        // is no input/_send calling. you can call update in that
-        // time, instead of call update repeatly.
-        // Important to reduce unnacessary update invoking. use it to
-        // schedule update (eg. implementing an epoll-like mechanism,
-        // or optimize update when handling massive kcp connections)
+        /// <summary>Check
+        /// Determine when should you invoke update
+        /// <para>Returns when you should invoke update in millisec, if there
+        /// is no input/_send calling. you can call update in that
+        /// time, instead of call update repeatly.</para>
+        /// <para>Important to reduce unnacessary update invoking. use it to
+        /// schedule update (eg. implementing an epoll-like mechanism, or
+        /// optimize update when handling massive kcp connections)</para>
+        /// </summary>
         public int Check()
         {
             uint current = CurrentMS;
@@ -910,7 +932,6 @@ namespace Mirror.KCP
             this.mtu = mtu;
         }
 
-
         /// <summary>SetNoDelay
         /// <para>Normal: false, 40, 0, 0</para>
         /// <para>Fast:    false, 30, 2, 1</para>
@@ -945,16 +966,21 @@ namespace Mirror.KCP
                 nocwnd = nc;
         }
 
-        // set maximum window size: sndwnd=32, rcvwnd=32 by default
-        public void SetWindowSize(uint sendWindow, uint recvWindow)
+        /// <summary>SetWindowSize
+        /// sets maximum window size</summary>
+        /// <param name="sendWindow">32 by default</param>
+        /// <param name="receiveWindow">32 by default</param>
+        public void SetWindowSize(uint sendWindow = 32, uint receiveWindow = 32)
         {
             if (sendWindow > 0)
                 SendWindowMax = sendWindow;
 
-            if (recvWindow > 0)
-                ReceiveWindowMax = Math.Max(recvWindow, WND_RCV);
+            if (receiveWindow > 0)
+                ReceiveWindowMax = Math.Max(receiveWindow, WND_RCV);
         }
 
+        /// <summary>ReserveBytes</summary>
+        /// <param name="reservedSize"></param>
         public void ReserveBytes(uint reservedSize)
         {
             if (reservedSize >= (mtu - OVERHEAD))
