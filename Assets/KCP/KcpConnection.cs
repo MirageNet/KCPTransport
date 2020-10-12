@@ -13,7 +13,7 @@ namespace Mirror.KCP
     {
         protected Socket socket;
         protected EndPoint remoteEndpoint;
-        protected KCP kcp;
+        protected Kcp kcp;
         volatile bool open;
 
         // If we don't receive anything these many milliseconds
@@ -31,7 +31,7 @@ namespace Mirror.KCP
 
         protected void SetupKcp()
         {
-            kcp = new KCP(0, RawSend);
+            kcp = new Kcp(0, RawSend);
             kcp.SetNoDelay();
             open = true;
 

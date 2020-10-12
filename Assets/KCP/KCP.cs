@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Mirror.KCP
 {
-    public class KCP
+    public class Kcp
     {
         public const int RTO_NDL = 30;  // no delay min rto
         public const int RTO_MIN = 100; // normal min rto
@@ -84,7 +84,7 @@ namespace Mirror.KCP
         /// <summary>create a new kcp control object</summary>
         /// <param name="conv_">must equal in two endpoint from the same connection.</param>
         /// <param name="output_"></param>
-        public KCP(uint conv_, Action<byte[], int> output_)
+        public Kcp(uint conv_, Action<byte[], int> output_)
         {
             conv = conv_;
             SendWindowMax = WND_SND;
