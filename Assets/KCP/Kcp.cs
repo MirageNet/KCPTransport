@@ -531,10 +531,10 @@ namespace Mirror.KCP
 
                     if ((cwnd + 1) * _mss <= incr)
                     {
+                        cwnd = incr + _mss - 1;
+
                         if (_mss > 0)
-                            cwnd = (incr + _mss - 1) / _mss;
-                        else
-                            cwnd = incr + _mss - 1;
+                            cwnd /= _mss;                            
                     }
                 }
                 if (cwnd > RmtWnd)
