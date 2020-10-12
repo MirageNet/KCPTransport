@@ -164,11 +164,8 @@ namespace Mirror.KCP
                     break;
             }
 
-            if (count > 0)
-            {
-                receiveQueue.RemoveRange(0, count);
-            }
-
+            receiveQueue.RemoveRange(0, count);
+            
             // move available data from rcv_buf -> rcv_queue
             count = 0;
             foreach (Segment seg in receiveBuffer)
@@ -185,10 +182,7 @@ namespace Mirror.KCP
                 }
             }
 
-            if (count > 0)
-            {
-                receiveBuffer.RemoveRange(0, count);
-            }
+            receiveBuffer.RemoveRange(0, count);
 
             // fast recover
             if (receiveQueue.Count < ReceiveWindowMax && fastRecover)
