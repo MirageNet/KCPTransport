@@ -97,13 +97,16 @@ namespace Mirror.KCP
         // check the size of next message in the recv queue
         public int PeekSize()
         {
-            if (receiveQueue.Count == 0) return -1;
+            if (receiveQueue.Count == 0)
+                return -1;
 
             Segment seq = receiveQueue[0];
 
-            if (seq.frg == 0) return seq.data.ReadableBytes;
+            if (seq.frg == 0)
+                return seq.data.ReadableBytes;
 
-            if (receiveQueue.Count < seq.frg + 1) return -1;
+            if (receiveQueue.Count < seq.frg + 1)
+                return -1;
 
             int length = 0;
 
@@ -144,6 +147,7 @@ namespace Mirror.KCP
             // merge fragment.
             int count = 0;
             int n = index;
+
             foreach (Segment seg in receiveQueue)
             {
                 // copy fragment data into buffer.
@@ -153,7 +157,8 @@ namespace Mirror.KCP
                 count++;
                 uint fragment = seg.frg;
                 Segment.Put(seg);
-                if (fragment == 0) break;
+                if (fragment == 0)
+                    break;
             }
 
             if (count > 0)
