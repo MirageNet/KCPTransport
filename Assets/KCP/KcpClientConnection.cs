@@ -49,7 +49,11 @@ namespace Mirror.KCP
             {
                 int msgLength = socket.EndReceiveFrom(ar, ref remoteEndpoint);
                 RawInput(buffer, msgLength);
-                socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref remoteEndpoint, ReceiveFrom, null);
+                ReceiveLoop();
+            }
+            catch (SocketException)
+            {
+                // fine, can be thrown if socket is closed
             }
             catch (ObjectDisposedException)
             {
