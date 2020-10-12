@@ -9,7 +9,6 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 using System.Threading.Tasks;
 using System.Linq;
-using System.Net;
 
 namespace Mirror.KCP
 {
