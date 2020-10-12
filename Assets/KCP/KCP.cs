@@ -220,7 +220,8 @@ namespace Mirror.KCP
             if (count > 255)
                 throw new ArgumentException("Your packet is too big, please reduce its length or increase the MTU with SetMtu().");
 
-            if (count == 0) count = 1;
+            if (count == 0)
+                count = 1;
 
             // fragment
             for (int i = 0; i < count; i++)
