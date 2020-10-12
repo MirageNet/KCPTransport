@@ -36,6 +36,7 @@ namespace Mirror.KCP
             socket.Bind(new IPEndPoint(IPAddress.IPv6Any, Port));
 
             ReadLoop();
+
             return Task.CompletedTask;
         }
 
@@ -48,8 +49,15 @@ namespace Mirror.KCP
 
         private void ReceiveFrom(IAsyncResult ar)
         {
-            int msgLength = socket.EndReceiveFrom(ar, ref newClientEP);
-
+            int msgLength = 0;
+            try
+            {
+                msgLength = socket.EndReceiveFrom(ar, ref newClientEP);
+            }
+            catch(Exception ex)
+            {
+                Debug.LogException(ex);
+            }
             RawInput(newClientEP, buffer, msgLength);
             socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP, ReceiveFrom, null);
         }
