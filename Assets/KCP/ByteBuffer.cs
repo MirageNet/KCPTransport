@@ -112,13 +112,7 @@ namespace Mirror.KCP
 
         public int ReaderIndex { get; private set; }
 
-        public int ReadableBytes
-        {
-            get
-            {
-                return writeIndex - ReaderIndex;
-            }
-        }
+        public int ReadableBytes => writeIndex - ReaderIndex;
 
         public int Capacity { get; private set; }
 
