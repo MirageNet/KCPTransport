@@ -9,6 +9,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Net.Sockets;
 
 namespace Mirror.KCP
 {
@@ -152,6 +153,19 @@ namespace Mirror.KCP
         public void IsSupportedTest()
         {
             Assert.That(transport.Supported, Is.True);
+        }
+
+        [Test]
+        public void ConnectAsyncExceptionTest()
+        {
+            var uriBuilder = new UriBuilder()
+            {
+                Host = "sdfasdfasdfasdf",
+                Scheme = "abc",
+                Port = port
+            };
+
+            Assert.Throws<SocketException>(() => { transport.ConnectAsync(uriBuilder.Uri).GetAwaiter().GetResult(); });
         }
     }
 }
