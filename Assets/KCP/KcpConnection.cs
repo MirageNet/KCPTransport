@@ -152,7 +152,7 @@ namespace Mirror.KCP
             var stream = new MemoryStream();
             if (!await ReceiveAsync(stream))
             {
-                throw new Exception("Unable to establish connection, no message received");
+                throw new OperationCanceledException("Unable to establish connection, no Handshake message received.");
             }
         }
 
@@ -166,7 +166,6 @@ namespace Mirror.KCP
             {
                 try
                 {
-
                     _ = SendAsync(Goodby);
                     kcp.Flush(false);
                 }
