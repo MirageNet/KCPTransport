@@ -41,16 +41,23 @@ namespace Mirror.KCP
 
         async UniTask ReceiveLoop()
         {
-            while (socket != null)
+            try
             {
-                while (socket.Poll(0, SelectMode.SelectRead))
+                while (socket != null)
                 {
-                    int msgLength = socket.ReceiveFrom(buffer, ref remoteEndpoint);
-                    RawInput(buffer, msgLength);
-                }
+                    while (socket.Poll(0, SelectMode.SelectRead))
+                    {
+                        int msgLength = socket.ReceiveFrom(buffer, ref remoteEndpoint);
+                        RawInput(buffer, msgLength);
+                    }
 
-                // wait a few MS to poll again
-                await UniTask.Delay(2);
+                    // wait a few MS to poll again
+                    await UniTask.Delay(2);
+                }
+            }
+            catch (SocketException)
+            {
+                // this is fine,  the socket might have been closed in the other end
             }
         }
 
