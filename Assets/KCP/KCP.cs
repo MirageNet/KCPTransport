@@ -204,14 +204,6 @@ namespace Mirror.KCP
         /// <summary>Send
         /// <para>user/upper level send</para></summary>
         /// <param name="buffer"></param>
-        public void Send(byte[] buffer)
-        {
-            Send(buffer, 0, buffer.Length);
-        }
-
-        /// <summary>Send
-        /// <para>user/upper level send</para></summary>
-        /// <param name="buffer"></param>
         /// <param name="index"></param>
         /// <param name="length"></param>
         public void Send(byte[] buffer, int index, int length)
