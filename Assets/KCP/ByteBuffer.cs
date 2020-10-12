@@ -89,7 +89,7 @@ namespace Mirror.KCP
         /// <param name="currLen">Current capacity</param>
         /// <param name="futureLen">Future capacity</param>
         /// <returns>The maximum capacity of the current buffer</returns>
-        int FixSizeAndReset(int currLen, int futureLen)
+        void FixSizeAndReset(int currLen, int futureLen)
         {
             if (futureLen > currLen)
             {
@@ -105,7 +105,6 @@ namespace Mirror.KCP
                 RawBuffer = newbuf;
                 Capacity = size;
             }
-            return futureLen;
         }
 
         /// <summary>
