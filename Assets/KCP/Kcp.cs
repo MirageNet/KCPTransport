@@ -524,8 +524,7 @@ namespace Mirror.KCP
                 }
                 else
                 {
-                    if (incr < _mss)
-                        incr = _mss;
+                    incr = Math.Max(incr, _mss);
 
                     incr += _mss * _mss / incr + _mss / 16;
 
