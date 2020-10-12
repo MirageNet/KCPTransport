@@ -5,7 +5,6 @@ namespace Mirror.KCP
 {
     class ByteBuffer : IDisposable
     {
-        int readIndex;
         int writeIndex;
         static readonly List<ByteBuffer> pool = new List<ByteBuffer>();
         const int PoolMaxCount = 200;
@@ -14,7 +13,7 @@ namespace Mirror.KCP
         {
             RawBuffer = new byte[capacity];
             Capacity = capacity;
-            readIndex = 0;
+            ReaderIndex = 0;
             writeIndex = 0;
         }
 
@@ -111,24 +110,13 @@ namespace Mirror.KCP
             writeIndex = total;
         }
 
-        public int ReaderIndex
-        {
-            get
-            {
-                return readIndex;
-            }
-            set
-            {
-                if (value < 0) return;
-                readIndex = value;
-            }
-        }
+        public int ReaderIndex { get; private set; }
 
         public int ReadableBytes
         {
             get
             {
-                return writeIndex - readIndex;
+                return writeIndex - ReaderIndex;
             }
         }
 
@@ -138,7 +126,7 @@ namespace Mirror.KCP
 
         public void Clear()
         {
-            readIndex = 0;
+            ReaderIndex = 0;
             writeIndex = 0;
             Capacity = RawBuffer.Length;
         }
@@ -151,7 +139,7 @@ namespace Mirror.KCP
                 pool.Add(this);
                 return;
             }
-            readIndex = 0;
+            ReaderIndex = 0;
             writeIndex = 0;
             Capacity = 0;
             RawBuffer = null;
