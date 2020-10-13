@@ -142,7 +142,7 @@ namespace Mirror.KCP
             // if we receive a disconnect message,  then close everything
             
             var dataSegment = new ArraySegment<byte>(buffer.GetBuffer(), 0, msgSize);
-            if (dataSegment.SequenceEqual(Goodby))
+            if (Utils.Equal(dataSegment, Goodby))
             {
                 open = false;
                 Disconnected?.Invoke();
