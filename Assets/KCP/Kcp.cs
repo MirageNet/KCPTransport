@@ -19,7 +19,6 @@ namespace Mirror.KCP
         public const int MTU_DEF = 1200; //MTU Default.
         public const int ACK_FAST = 3;
         public const int OVERHEAD = 24;
-        public const int THRESH_INIT = 2;
         public const int THRESH_MIN = 2;
         public const int PROBE_INIT = 7000;   // 7 secs to probe window size
         public const int PROBE_LIMIT = 120000; // up to 120 secs to probe window
@@ -38,7 +37,7 @@ namespace Mirror.KCP
         uint snd_una;
         uint snd_nxt;
         uint rcv_nxt;
-        uint ssthresh;
+        uint ssthresh = 2;
         uint rx_rttval;
         uint rx_srtt;
         uint rx_rto;
@@ -88,7 +87,6 @@ namespace Mirror.KCP
             mtu = MTU_DEF;
             rx_rto = RTO_DEF;
             rx_minrto = RTO_MIN;
-            ssthresh = THRESH_INIT;
             buffer = new byte[mtu];
             output = output_;
             refTime.Start();
