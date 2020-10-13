@@ -18,7 +18,6 @@ namespace Mirror.KCP
         public const int WND_RCV = 32; //default Receive Window
         public const int MTU_DEF = 1200; //MTU Default.
         public const int ACK_FAST = 3;
-        public const int INTERVAL = 100;
         public const int OVERHEAD = 24;
         public const int DEADLINK = 20;
         public const int THRESH_INIT = 2;
@@ -48,8 +47,8 @@ namespace Mirror.KCP
         uint rx_minrto;
         uint cwnd;
         uint probe;
-        uint interval;
-        uint ts_flush;
+        uint interval = 100;
+        uint ts_flush = 100;
         bool noDelay;
         bool updated;
         uint ts_probe;
@@ -91,8 +90,6 @@ namespace Mirror.KCP
             mtu = MTU_DEF;
             rx_rto = RTO_DEF;
             rx_minrto = RTO_MIN;
-            interval = INTERVAL;
-            ts_flush = INTERVAL;
             ssthresh = THRESH_INIT;
             buffer = new byte[mtu];
             output = output_;
