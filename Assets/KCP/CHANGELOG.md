@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/MirrorNG/KCPTransport/compare/v1.0.1...v1.0.2) (2020-10-13)
+
+
+### Bug Fixes
+
+* set default value without constant ([1745476](https://github.com/MirrorNG/KCPTransport/commit/17454764fb4c9d7dc08cecc729d184811dcd8278))
+
 ## [1.0.1](https://github.com/MirrorNG/KCPTransport/compare/v1.0.0...v1.0.1) (2020-10-12)
 
 
