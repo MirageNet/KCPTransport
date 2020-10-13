@@ -1,5 +1,5 @@
 {
-    "name": "Runtime",
+    "name": "KCP.Tests",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",

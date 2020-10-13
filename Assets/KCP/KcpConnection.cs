@@ -16,6 +16,9 @@ namespace Mirror.KCP
         protected Kcp kcp;
         volatile bool open;
 
+
+        internal event Action Disconnected;
+
         // If we don't receive anything these many milliseconds
         // then consider us disconnected
         public const int TIMEOUT = 3000;
@@ -125,7 +128,10 @@ namespace Mirror.KCP
             }
 
             if (!open)
+            {
+                Disconnected?.Invoke();
                 return false;
+            }
 
             // we have some data,  return it
             buffer.SetLength(msgSize);
@@ -139,6 +145,7 @@ namespace Mirror.KCP
             if (dataSegment.SequenceEqual(Goodby))
             {
                 open = false;
+                Disconnected?.Invoke();
                 return false;
             }
 

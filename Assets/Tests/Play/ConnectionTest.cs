@@ -153,5 +153,16 @@ namespace Mirror.KCP
         {
             Assert.That(transport.Supported, Is.True);
         }
+
+        [UnityTest]
+        public IEnumerator ConnectionsDontLeak() => UniTask.ToCoroutine(async () =>
+        {
+            serverConnection.Disconnect();
+
+            var buffer = new MemoryStream();
+            while (await serverConnection.ReceiveAsync(buffer));
+
+            Assert.That(transport.connectedClients, Is.Empty);
+        });
     }
 }
