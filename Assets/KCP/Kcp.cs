@@ -6,14 +6,12 @@ namespace Mirror.KCP
 {
     public class Kcp
     {
+        public enum CommandType : byte {  Push = 81, Ack = 82, WindowAsk = 83, WindowTell = 84};
+
         public const int RTO_NDL = 30;  // no delay min rto
         public const int RTO_MIN = 100; // normal min rto
         public const int RTO_DEF = 200; //Default RTO
         public const int RTO_MAX = 60000; //Maximum RTO
-        public const int CMD_PUSH = 81; // cmd: push data
-        public const int CMD_ACK = 82; // cmd: ack
-        public const int CMD_WASK = 83; // cmd: window probe (ask)
-        public const int CMD_WINS = 84; // cmd: window size (tell)
         public const int ASK_SEND = 1;  // need to send CMD_WASK
         public const int ASK_TELL = 2;  // need to send CMD_WINS
         public const int WND_SND = 32; // defualt Send Window
@@ -435,10 +433,10 @@ namespace Mirror.KCP
 
                 switch (cmd)
                 {
-                    case CMD_PUSH:
-                    case CMD_ACK:
-                    case CMD_WASK:
-                    case CMD_WINS:
+                    case (byte)CommandType.Push:
+                    case (byte)CommandType.Ack:
+                    case (byte) CommandType.WindowAsk:
+                    case (byte)CommandType.WindowTell:
                         break;
                     default:
                         return -3;
@@ -453,46 +451,43 @@ namespace Mirror.KCP
                 ParseUna(una);
                 ShrinkBuf();
 
-                if (CMD_ACK == cmd)
+                switch (cmd)
                 {
-                    ParseAck(sn);
-                    ParseFastrack(sn, ts);
-                    flag |= 1;
-                    latest = ts;
-                }
-                else if (CMD_PUSH == cmd)
-                {
-                    if (sn < rcv_nxt + ReceiveWindowMax)
-                    {
-                        AckPush(sn, ts);
-                        if (sn >= rcv_nxt)
+                    case (byte)CommandType.Ack:
+                        ParseAck(sn);
+                        ParseFastrack(sn, ts);
+                        flag |= 1;
+                        latest = ts;
+                        break;
+                    case (byte)CommandType.Push:
+                        if (sn < rcv_nxt + ReceiveWindowMax)
                         {
-                            var seg = Segment.Get((int)length);
-                            seg.conv = conv_;
-                            seg.cmd = cmd;
-                            seg.frg = frg;
-                            seg.wnd = wnd;
-                            seg.ts = ts;
-                            seg.sn = sn;
-                            seg.una = una;
-                            seg.data.WriteBytes(data, offset, (int)length);
-                            ParseData(seg);
+                            AckPush(sn, ts);
+                            if (sn >= rcv_nxt)
+                            {
+                                var seg = Segment.Get((int)length);
+                                seg.conv = conv_;
+                                seg.cmd = cmd;
+                                seg.frg = frg;
+                                seg.wnd = wnd;
+                                seg.ts = ts;
+                                seg.sn = sn;
+                                seg.una = una;
+                                seg.data.WriteBytes(data, offset, (int)length);
+                                ParseData(seg);
+                            }
                         }
-                    }
-                }
-                else if (CMD_WASK == cmd)
-                {
-                    // ready to send back CMD_WINS in flush
-                    // tell remote my window size
-                    probe |= ASK_TELL;
-                }
-                else if (CMD_WINS == cmd)
-                {
-                    // do nothing
-                }
-                else
-                {
-                    return -3;
+                        break;
+                    case (byte)CommandType.WindowAsk:
+                        // ready to send back CMD_WINS in flush
+                        // tell remote my window size
+                        probe |= ASK_TELL;
+                        break;
+                    case (byte)CommandType.WindowTell:
+                        // do nothing
+                        break;
+                    default:
+                        return -3;
                 }
 
                 offset += (int)length;
@@ -566,7 +561,7 @@ namespace Mirror.KCP
         {
             var seg = Segment.Get(32);
             seg.conv = conv;
-            seg.cmd = CMD_ACK;
+            seg.cmd = (uint)CommandType.Ack;
             seg.wnd = WndUnused();
             seg.una = rcv_nxt;
 
@@ -641,14 +636,14 @@ namespace Mirror.KCP
             // flush window probing commands
             if ((probe & ASK_SEND) != 0)
             {
-                seg.cmd = CMD_WASK;
+                seg.cmd = (uint)CommandType.WindowAsk;
                 makeSpace(OVERHEAD);
                 writeIndex += seg.Encode(buffer, writeIndex);
             }
 
             if ((probe & ASK_TELL) != 0)
             {
-                seg.cmd = CMD_WINS;
+                seg.cmd = (uint)CommandType.WindowTell;
                 makeSpace(OVERHEAD);
                 writeIndex += seg.Encode(buffer, writeIndex);
             }
@@ -669,7 +664,7 @@ namespace Mirror.KCP
 
                 Segment newseg = sendQueue[k];
                 newseg.conv = conv;
-                newseg.cmd = CMD_PUSH;
+                newseg.cmd = (uint)CommandType.Push;
                 newseg.sn = snd_nxt;
                 sendBuffer.Add(newseg);
                 snd_nxt++;
