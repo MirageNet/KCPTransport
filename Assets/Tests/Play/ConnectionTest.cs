@@ -156,6 +156,7 @@ namespace Mirror.KCP
         }
 
         [Test]
+        [Timeout(2000)]
         public void ConnectAsyncExceptionTest()
         {
             var uriBuilder = new UriBuilder()
