@@ -1,3 +1,13 @@
+# [2.0.0](https://github.com/MirrorNG/KCPTransport/compare/v1.0.3...v2.0.0) (2020-10-14)
+
+
+* Ported to MirrorNG 49.0.0 ([3cb88fd](https://github.com/MirrorNG/KCPTransport/commit/3cb88fd6d3b1196eb49cee9c14468b83f09c26ca))
+
+
+### BREAKING CHANGES
+
+* Ported the transport to MirrorNG 49
+
 ## [1.0.3](https://github.com/MirrorNG/KCPTransport/compare/v1.0.2...v1.0.3) (2020-10-14)
 
 

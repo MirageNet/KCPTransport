@@ -1,7 +1,7 @@
 {
     "name": "com.mirrorng.kcptransport",
     "displayName": "MirrorNG KCPTransport",
-    "version": "1.0.3",
+    "version": "2.0.0",
     "unity": "2019.1",
     "description": "UDP transport for MirrorNG",
     "author": "Paul Pacheco",
