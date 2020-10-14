@@ -325,7 +325,7 @@ namespace Mirror.KCP
             MoveToReceiveQueue();
         }
 
-        private void InsertSegmentInReceiveBuffer(Segment newseg)
+        void InsertSegmentInReceiveBuffer(Segment newseg)
         {
             uint sn = newseg.sn;
             int n = receiveBuffer.Count - 1;
@@ -357,7 +357,7 @@ namespace Mirror.KCP
         }
 
         // move available data from rcv_buf -> rcv_queue
-        private void MoveToReceiveQueue()
+        void MoveToReceiveQueue()
         {
             int count = 0;
             foreach (Segment seg in receiveBuffer)
@@ -379,7 +379,8 @@ namespace Mirror.KCP
         }
 
         /// <summary>Input
-        /// <para>Used when you receive a low level packet (eg. UDP packet)</para></summary>
+        /// <para>Used when you receive a low level packet (eg. UDP packet)</para>
+        /// <returns>Returns int (-3, -1, or 0)</returns></summary>
         /// <param name="data"></param>
         /// <param name="index"></param>
         /// <param name="size"></param>
@@ -742,7 +743,7 @@ namespace Mirror.KCP
             return (uint)minrto;
         }
 
-        private void CwndUpdate(uint resent, ulong change, ulong lostSegs)
+        void CwndUpdate(uint resent, ulong change, ulong lostSegs)
         {
             // update ssthresh
             // rate halving, https://tools.ietf.org/html/rfc6937
