@@ -548,6 +548,25 @@ namespace Mirror.KCP
             return 0;
         }
 
+
+        int writeIndex;
+        void makeSpace(int space)
+        {
+            if (writeIndex + space > mtu)
+            {
+                output(buffer, writeIndex);
+                writeIndex = (int)reserved;
+            }
+        }
+
+        void flushBuffer()
+        {
+            if (writeIndex > reserved)
+            {
+                output(buffer, writeIndex);
+            }
+        }
+
         /// <summary>Flush</summary>
         /// <param name="ackOnly">flush remain ack segments</param>
         public uint Flush(bool ackOnly)
@@ -558,24 +577,7 @@ namespace Mirror.KCP
             seg.wnd = WndUnused();
             seg.una = rcv_nxt;
 
-            int writeIndex = (int)reserved;
-
-            void makeSpace(int space)
-            {
-                if (writeIndex + space > mtu)
-                {
-                    output(buffer, writeIndex);
-                    writeIndex = (int)reserved;
-                }
-            }
-
-            void flushBuffer()
-            {
-                if (writeIndex > reserved)
-                {
-                    output(buffer, writeIndex);
-                }
-            }
+            writeIndex = (int)reserved;
 
             // flush acknowledges
             for (int i = 0; i < ackList.Count; i++)
