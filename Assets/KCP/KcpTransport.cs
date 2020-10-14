@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -29,12 +28,12 @@ namespace Mirror.KCP
         /// </summary>
         /// <exception>If we cannot start the transport</exception>
         /// <returns></returns>
-        public override Task ListenAsync()
+        public override UniTask ListenAsync()
         {
             socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
             socket.DualMode = true;
             socket.Bind(new IPEndPoint(IPAddress.IPv6Any, Port));
-            return Task.CompletedTask;
+            return UniTask.CompletedTask;
         }
 
         EndPoint newClientEP = new IPEndPoint(IPAddress.IPv6Any, 0);
@@ -79,7 +78,7 @@ namespace Mirror.KCP
         ///     then you get the connection to the client
         /// </summary>
         /// <returns>The connection to a client</returns>
-        public override async Task<IConnection> AcceptAsync()
+        public override async UniTask<IConnection> AcceptAsync()
         {
             KcpServerConnection connection = await acceptedConnections.Reader.ReadAsync();
 
@@ -116,7 +115,7 @@ namespace Mirror.KCP
         /// <param name="uri">address of the server to connect to</param>
         /// <returns>The connection to the server</returns>
         /// <exception>If connection cannot be established</exception>
-        public override async Task<IConnection> ConnectAsync(Uri uri)
+        public override async UniTask<IConnection> ConnectAsync(Uri uri)
         {
             var client = new KcpClientConnection();
 

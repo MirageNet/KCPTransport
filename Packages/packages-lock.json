@@ -12,9 +12,10 @@
       "depth": 0,
       "source": "git",
       "dependencies": {
-        "nuget.mono-cecil": "0.1.6-preview"
+        "nuget.mono-cecil": "0.1.6-preview",
+        "com.cysharp.unitask": "2.0.36"
       },
-      "hash": "bc17d19a543535c5d326df3098812db7a4686fd4"
+      "hash": "4a0628ab15ec894d5a813b5c04c7396cd008c767"
     },
     "com.unity.ext.nunit": {
       "version": "1.0.0",

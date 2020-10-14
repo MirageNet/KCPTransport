@@ -38,7 +38,7 @@ namespace Mirror.KCP
 
             await transport.ListenAsync();
 
-            Task<IConnection> acceptTask = transport.AcceptAsync();
+            UniTask<IConnection> acceptTask = transport.AcceptAsync();
             var uriBuilder = new UriBuilder()
             {
                 Host = "localhost",
@@ -48,7 +48,7 @@ namespace Mirror.KCP
 
             testUri = uriBuilder.Uri;
 
-            Task<IConnection> connectTask = transport.ConnectAsync(uriBuilder.Uri);
+            UniTask<IConnection> connectTask = transport.ConnectAsync(uriBuilder.Uri);
 
             serverConnection = await acceptTask;
             clientConnection = await connectTask;

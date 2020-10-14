@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -103,10 +102,10 @@ namespace Mirror.KCP
 
         protected abstract void RawSend(byte[] data, int length);
 
-        public Task SendAsync(ArraySegment<byte> data)
+        public UniTask SendAsync(ArraySegment<byte> data)
         {
             kcp.Send(data.Array, data.Offset, data.Count);
-            return Task.CompletedTask;
+            return UniTask.CompletedTask;
         }
 
         /// <summary>
@@ -114,7 +113,7 @@ namespace Mirror.KCP
         /// </summary>
         /// <param name="buffer">buffer where the message will be written</param>
         /// <returns>true if we got a message, false if we got disconnected</returns>
-        public async Task<bool> ReceiveAsync(MemoryStream buffer)
+        public async UniTask<bool> ReceiveAsync(MemoryStream buffer)
         {
             int msgSize = kcp.PeekSize();
 
@@ -151,7 +150,7 @@ namespace Mirror.KCP
             return true;
         }
 
-        internal async Task Handshake()
+        internal async UniTask Handshake()
         {
             // send a greeting and see if the server replies
             await SendAsync(Hello);
