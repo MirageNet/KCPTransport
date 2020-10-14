@@ -68,7 +68,7 @@ namespace Mirror.KCP
             return ((int)(later - earlier));
         }
 
-        public static bool Equal(ArraySegment<byte> seg1, ArraySegment<byte> seg2) where T: unmanaged
+        public static bool Equal(ArraySegment<byte> seg1, ArraySegment<byte> seg2)
         {
             if (seg1.Count != seg2.Count)
                 return false;
