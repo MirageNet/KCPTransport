@@ -19,7 +19,6 @@ namespace Mirror.KCP
         public const int MTU_DEF = 1200; //MTU Default.
         public const int ACK_FAST = 3;
         public const int OVERHEAD = 24;
-        public const int THRESH_MIN = 2;
         public const int PROBE_INIT = 7000;   // 7 secs to probe window size
         public const int PROBE_LIMIT = 120000; // up to 120 secs to probe window
 
@@ -743,6 +742,13 @@ namespace Mirror.KCP
             return (uint)minrto;
         }
 
+        void SetThresh(uint value)
+        {
+            ssthresh = value;
+            if (ssthresh < 2)
+                ssthresh = 2;
+        }
+
         void CwndUpdate(uint resent, ulong change, ulong lostSegs)
         {
             // update ssthresh
@@ -750,9 +756,7 @@ namespace Mirror.KCP
             if (change > 0)
             {
                 uint inflght = snd_nxt - snd_una;
-                ssthresh = inflght / 2;
-                if (ssthresh < THRESH_MIN)
-                    ssthresh = THRESH_MIN;
+                SetThresh(inflght / 2);
                 cwnd = ssthresh + resent;
                 incr = cwnd * Mss;
             }
@@ -760,9 +764,7 @@ namespace Mirror.KCP
             // congestion control, https://tools.ietf.org/html/rfc5681
             if (lostSegs > 0)
             {
-                ssthresh = cwnd / 2;
-                if (ssthresh < THRESH_MIN)
-                    ssthresh = THRESH_MIN;
+                SetThresh(cwnd / 2);
                 cwnd = 1;
                 incr = Mss;
             }
