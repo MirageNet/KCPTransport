@@ -8,18 +8,12 @@ namespace Mirror.KCP
     {
         public enum CommandType : byte {  Push = 81, Ack = 82, WindowAsk = 83, WindowTell = 84};
 
-        public const int RTO_NDL = 30;  // no delay min rto
-        public const int RTO_MIN = 100; // normal min rto
-        public const int RTO_DEF = 200; //Default RTO
         public const int RTO_MAX = 60000; //Maximum RTO
         public const int ASK_SEND = 1;  // need to send CMD_WASK
         public const int ASK_TELL = 2;  // need to send CMD_WINS
         public const int WND_SND = 32; // defualt Send Window
         public const int WND_RCV = 32; //default Receive Window
-        public const int MTU_DEF = 1200; //MTU Default.
-        public const int ACK_FAST = 3;
-        public const int OVERHEAD = 24;
-        public const int THRESH_MIN = 2;
+        public const int OVERHEAD = 24; //related to MTU
         public const int PROBE_INIT = 7000;   // 7 secs to probe window size
         public const int PROBE_LIMIT = 120000; // up to 120 secs to probe window
 
@@ -33,15 +27,15 @@ namespace Mirror.KCP
 
         // kcp members.
         readonly uint conv;
-        uint mtu;
+        uint mtu = 1200; //MTU Default.
         uint snd_una;
         uint snd_nxt;
         uint rcv_nxt;
         uint ssthresh = 2;
         uint rx_rttval;
-        uint rx_srtt;
-        uint rx_rto;
-        uint rx_minrto;
+        uint rx_SmoothedRoundTripTime; //Used by UpdateAck
+        uint rx_rto = 200; //Default RTO
+        uint rx_MinimumRto = 100; // normal min rto
         uint cwnd;
         uint probe;
         uint interval = 100;
@@ -69,10 +63,14 @@ namespace Mirror.KCP
         public uint RmtWnd { get; private set; }
         public uint Mss => mtu - OVERHEAD - reserved;
 
-        // get how many packet is waiting to be sent
+        /// <summary>
+        /// Returns int count of current packets waiting to be sent
+        /// </summary>
         public int WaitSnd => sendBuffer.Count + sendQueue.Count;
 
-        // internal time.
+        /// <summary>
+        /// Returns uint current internal time in Milliseconds
+        /// </summary>
         public uint CurrentMS => (uint)refTime.ElapsedMilliseconds;
 
         /// <summary>create a new kcp control object</summary>
@@ -84,16 +82,14 @@ namespace Mirror.KCP
             SendWindowMax = WND_SND;
             ReceiveWindowMax = WND_RCV;
             RmtWnd = WND_RCV;
-            mtu = MTU_DEF;
-            rx_rto = RTO_DEF;
-            rx_minrto = RTO_MIN;
             buffer = new byte[mtu];
             output = output_;
             refTime.Start();
         }
 
         /// <summary>PeekSize
-        /// check the size of next message in the recv queue</summary>
+        /// <para>check the size of next message in the recv queue</para>
+        /// <return>Returns int (-1, length or readablebytes)</return></summary>
         public int PeekSize()
         {
             if (receiveQueue.Count == 0)
@@ -120,10 +116,10 @@ namespace Mirror.KCP
         }
 
         /// <summary>Receive
-        /// Receive data from kcp state machine
-        /// <para>Return number of bytes read.</para>
-        /// <para>Return -1 when there is no readable data.</para>
-        /// <para>Return -2 if len(buffer) is smaller than kcp.PeekSize().</para></summary>
+        /// <para>Receive data from kcp state machine</para>
+        /// <return>Return number of bytes read.
+        /// Return -1 when there is no readable data.
+        /// Return -2 if len(buffer) is smaller than kcp.PeekSize().</return></summary>
         /// <param name="buffer"></param>
         /// <param name="index"></param>
         /// <param name="length"></param>
@@ -224,20 +220,20 @@ namespace Mirror.KCP
         }
 
         // update ack.
-        void UpdateAck(int rtt)
+        void UpdateAck(int roundTripTime)
         {
             // https://tools.ietf.org/html/rfc6298
-            if (rx_srtt == 0)
+            if (rx_SmoothedRoundTripTime == 0)
             {
-                rx_srtt = (uint)rtt;
-                rx_rttval = (uint)rtt >> 1;
+                rx_SmoothedRoundTripTime = (uint)roundTripTime;
+                rx_rttval = (uint)roundTripTime >> 1;
             }
             else
             {
-                uint delta = (uint)Math.Abs(rtt - rx_srtt);
-                rx_srtt += delta >> 3;
+                uint delta = (uint)Math.Abs(roundTripTime - rx_SmoothedRoundTripTime);
+                rx_SmoothedRoundTripTime += delta >> 3;
 
-                if (rtt < rx_srtt - rx_rttval)
+                if (roundTripTime < rx_SmoothedRoundTripTime - rx_rttval)
                 {
                     // if the new RTT sample is below the bottom of the range of
                     // what an RTT measurement is expected to be.
@@ -250,8 +246,8 @@ namespace Mirror.KCP
                 }
             }
 
-            uint rto = rx_srtt + Math.Max(interval, rx_rttval << 2);
-            rx_rto = Utils.Clamp(rto, rx_minrto, RTO_MAX);
+            uint rto = rx_SmoothedRoundTripTime + Math.Max(interval, rx_rttval << 2);
+            rx_rto = Utils.Clamp(rto, rx_MinimumRto, RTO_MAX);
         }
 
         void ShrinkBuf()
@@ -325,7 +321,7 @@ namespace Mirror.KCP
             MoveToReceiveQueue();
         }
 
-        private void InsertSegmentInReceiveBuffer(Segment newseg)
+        void InsertSegmentInReceiveBuffer(Segment newseg)
         {
             uint sn = newseg.sn;
             int n = receiveBuffer.Count - 1;
@@ -357,7 +353,7 @@ namespace Mirror.KCP
         }
 
         // move available data from rcv_buf -> rcv_queue
-        private void MoveToReceiveQueue()
+        void MoveToReceiveQueue()
         {
             int count = 0;
             foreach (Segment seg in receiveBuffer)
@@ -379,7 +375,8 @@ namespace Mirror.KCP
         }
 
         /// <summary>Input
-        /// <para>Used when you receive a low level packet (eg. UDP packet)</para></summary>
+        /// <para>Used when you receive a low level packet (eg. UDP packet)</para>
+        /// <returns>Returns int (-3, -1, or 0)</returns></summary>
         /// <param name="data"></param>
         /// <param name="index"></param>
         /// <param name="size"></param>
@@ -387,7 +384,6 @@ namespace Mirror.KCP
         /// <param name="ackNoDelay">will trigger immediate ACK, but surely it will not be efficient in bandwidth</param>
         public int Input(byte[] data, int index, int size, bool regular, bool ackNoDelay)
         {
-            uint s_una = snd_una;
             if (size < OVERHEAD) return -1;
 
             int offset = index;
@@ -498,7 +494,7 @@ namespace Mirror.KCP
             }
 
             // cwnd update when packet arrived
-            UpdateCwnd(s_una);
+            UpdateCwnd(snd_una);
 
             // ack immediately
             if (ackNoDelay && ackList.Count > 0)
@@ -512,31 +508,30 @@ namespace Mirror.KCP
         void UpdateCwnd(uint s_una)
         {
             if (!nocwnd && snd_una > s_una && cwnd < RmtWnd)
-            {
-                uint _mss = Mss;
+            {                
                 if (cwnd < ssthresh)
                 {
                     cwnd++;
-                    incr += _mss;
+                    incr += Mss;
                 }
                 else
                 {
-                    incr = Math.Max(incr, _mss);
+                    incr = Math.Max(incr, Mss);
 
-                    incr += _mss * _mss / incr + _mss / 16;
+                    incr += Mss * Mss / incr + Mss / 16;
 
-                    if ((cwnd + 1) * _mss <= incr)
+                    if ((cwnd + 1) * Mss <= incr)
                     {
-                        cwnd = incr + _mss - 1;
+                        cwnd = incr + Mss - 1;
 
-                        if (_mss > 0)
-                            cwnd /= _mss;                            
+                        if (Mss > 0)
+                            cwnd /= Mss;                            
                     }
                 }
                 if (cwnd > RmtWnd)
                 {
                     cwnd = RmtWnd;
-                    incr = RmtWnd * _mss;
+                    incr = RmtWnd * Mss;
                 }                
             }
         }
@@ -548,36 +543,27 @@ namespace Mirror.KCP
             return 0;
         }
 
-        /// <summary>Flush</summary>
-        /// <param name="ackOnly">flush remain ack segments</param>
-        public uint Flush(bool ackOnly)
+
+        int writeIndex;
+        void makeSpace(int space)
         {
-            var seg = Segment.Get(32);
-            seg.conv = conv;
-            seg.cmd = (uint)CommandType.Ack;
-            seg.wnd = WndUnused();
-            seg.una = rcv_nxt;
-
-            int writeIndex = (int)reserved;
-
-            void makeSpace(int space)
+            if (writeIndex + space > mtu)
             {
-                if (writeIndex + space > mtu)
-                {
-                    output(buffer, writeIndex);
-                    writeIndex = (int)reserved;
-                }
+                output(buffer, writeIndex);
+                writeIndex = (int)reserved;
             }
+        }
 
-            void flushBuffer()
+        void flushBuffer()
+        {
+            if (writeIndex > reserved)
             {
-                if (writeIndex > reserved)
-                {
-                    output(buffer, writeIndex);
-                }
+                output(buffer, writeIndex);
             }
+        }
 
-            // flush acknowledges
+        void FlushAcknowledges(Segment seg)
+        {
             for (int i = 0; i < ackList.Count; i++)
             {
                 makeSpace(OVERHEAD);
@@ -590,6 +576,45 @@ namespace Mirror.KCP
                 }
             }
             ackList.Clear();
+        }
+
+        int SetSendBuffer(uint cwnd_)
+        {
+            // sliding window, controlled by snd_nxt && sna_una+cwnd
+            int newSegsCount = 0;
+            for (int k = 0; k < sendQueue.Count; k++)
+            {
+                if (snd_nxt >= snd_una + cwnd_)
+                    break;
+
+                Segment newseg = sendQueue[k];
+                newseg.conv = conv;
+                newseg.cmd = (uint)CommandType.Push;
+                newseg.sn = snd_nxt;
+                sendBuffer.Add(newseg);
+                snd_nxt++;
+                newSegsCount++;
+            }
+
+            sendQueue.RemoveRange(0, newSegsCount);
+
+            return newSegsCount;
+        }
+
+        /// <summary><para>Flush</para>
+        /// <return>Returns uint (interval or mintro)</return></summary>
+        /// <param name="ackOnly">flush remain ack segments</param>
+        public uint Flush(bool ackOnly)
+        {
+            var seg = Segment.Get(32);
+            seg.conv = conv;
+            seg.cmd = (uint)CommandType.Ack;
+            seg.wnd = WndUnused();
+            seg.una = rcv_nxt;
+
+            writeIndex = (int)reserved;
+
+            FlushAcknowledges(seg);
 
             // flush remain ack segments
             if (ackOnly)
@@ -649,22 +674,7 @@ namespace Mirror.KCP
                 cwnd_ = Math.Min(cwnd, cwnd_);
 
             // sliding window, controlled by snd_nxt && sna_una+cwnd
-            int newSegsCount = 0;
-            for (int k = 0; k < sendQueue.Count; k++)
-            {
-                if (snd_nxt >= snd_una + cwnd_)
-                    break;
-
-                Segment newseg = sendQueue[k];
-                newseg.conv = conv;
-                newseg.cmd = (uint)CommandType.Push;
-                newseg.sn = snd_nxt;
-                sendBuffer.Add(newseg);
-                snd_nxt++;
-                newSegsCount++;
-            }
-
-            sendQueue.RemoveRange(0, newSegsCount);
+            int newSegsCount = SetSendBuffer(cwnd_);
 
             // calculate resent
             uint resent = (uint)fastresend;
@@ -672,7 +682,8 @@ namespace Mirror.KCP
 
             // check for retransmissions
             current = CurrentMS;
-            ulong change = 0; ulong lostSegs = 0;
+            ulong change = 0;
+            ulong lostSegs = 0;
             int minrto = (int)interval;
 
             for (int k = 0; k < sendBuffer.Count; k++)
@@ -742,16 +753,20 @@ namespace Mirror.KCP
             return (uint)minrto;
         }
 
-        private void CwndUpdate(uint resent, ulong change, ulong lostSegs)
+        void SetThresh(uint value)
+        {
+            ssthresh = value;
+            if (ssthresh < 2)
+                ssthresh = 2;
+        }
+
+        void CwndUpdate(uint resent, ulong change, ulong lostSegs)
         {
             // update ssthresh
             // rate halving, https://tools.ietf.org/html/rfc6937
             if (change > 0)
             {
-                uint inflght = snd_nxt - snd_una;
-                ssthresh = inflght / 2;
-                if (ssthresh < THRESH_MIN)
-                    ssthresh = THRESH_MIN;
+                SetThresh((snd_nxt - snd_una) / 2);
                 cwnd = ssthresh + resent;
                 incr = cwnd * Mss;
             }
@@ -759,9 +774,7 @@ namespace Mirror.KCP
             // congestion control, https://tools.ietf.org/html/rfc5681
             if (lostSegs > 0)
             {
-                ssthresh = cwnd / 2;
-                if (ssthresh < THRESH_MIN)
-                    ssthresh = THRESH_MIN;
+                SetThresh(cwnd / 2);
                 cwnd = 1;
                 incr = Mss;
             }
@@ -808,11 +821,12 @@ namespace Mirror.KCP
         /// Determine when should you invoke update
         /// <para>Returns when you should invoke update in millisec, if there
         /// is no input/_send calling. you can call update in that
-        /// time, instead of call update repeatly.</para>
-        /// <para>Important to reduce unnacessary update invoking. use it to
+        /// time, instead of call update repeatly.
+        /// Important to reduce unnacessary update invoking. use it to
         /// schedule update (eg. implementing an epoll-like mechanism, or
-        /// optimize update when handling massive kcp connections)</para>
-        /// <remark> Standard KCP returns time as current + delta.  This version returns delta</remark>
+        /// optimize update when handling massive kcp connections)
+        /// Standard KCP returns time as current + delta.  This version returns delta</para>
+        /// <returns>Returns int (0 or minimum interval)</returns>
         /// </summary>
         public int Check()
         {
@@ -849,7 +863,6 @@ namespace Mirror.KCP
 
             // NOTE: Original KCP returns current time + delta
             // I changed it to only return delta
-
             return  minimal;
         }
 
@@ -877,12 +890,13 @@ namespace Mirror.KCP
         /// <param name="interval">Interval of the internal working of the protocol, in milliseconds, such as 10ms or 20ms.</param>
         /// <param name="resend">fast retransmission mode, default 0 is off, 1 fast resend, 2 can be set (2 ACK crossings will directly retransmit).</param>
         /// <param name="nc">Whether to close the flow control (congestion), the default is 0 means not to close, 1 means to close.</param>
-        public void SetNoDelay(bool nodelay = false, uint interval = 40, int resend = 0, bool nc = false)
+        /// <param name="minimumRto">Sets Minimum RTO only when NoDelay is true.</param>
+        public void SetNoDelay(bool nodelay = false, uint interval = 40, int resend = 0, bool nc = false, uint minimumRto = 30)
         {
             if (nodelay)
             {
                 noDelay = nodelay;
-                rx_minrto = RTO_NDL;
+                rx_MinimumRto = minimumRto;
             }
 
             if (interval >= 0)
