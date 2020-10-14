@@ -8,7 +8,6 @@ namespace Mirror.KCP
     {
         public enum CommandType : byte {  Push = 81, Ack = 82, WindowAsk = 83, WindowTell = 84};
 
-        public const int RTO_NDL_MIN = 30;  // no delay min rto
         public const int RTO_MAX = 60000; //Maximum RTO
         public const int ASK_SEND = 1;  // need to send CMD_WASK
         public const int ASK_TELL = 2;  // need to send CMD_WINS
@@ -879,12 +878,13 @@ namespace Mirror.KCP
         /// <param name="interval">Interval of the internal working of the protocol, in milliseconds, such as 10ms or 20ms.</param>
         /// <param name="resend">fast retransmission mode, default 0 is off, 1 fast resend, 2 can be set (2 ACK crossings will directly retransmit).</param>
         /// <param name="nc">Whether to close the flow control (congestion), the default is 0 means not to close, 1 means to close.</param>
-        public void SetNoDelay(bool nodelay = false, uint interval = 40, int resend = 0, bool nc = false)
+        /// <param name="minimumRto">Sets Minimum RTO only when NoDelay is true.</param>
+        public void SetNoDelay(bool nodelay = false, uint interval = 40, int resend = 0, bool nc = false, uint minimumRto = 30)
         {
             if (nodelay)
             {
                 noDelay = nodelay;
-                rx_MinimumRto = RTO_NDL_MIN;
+                rx_MinimumRto = minimumRto;
             }
 
             if (interval >= 0)
