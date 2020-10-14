@@ -510,31 +510,30 @@ namespace Mirror.KCP
         void UpdateCwnd(uint s_una)
         {
             if (!nocwnd && snd_una > s_una && cwnd < RmtWnd)
-            {
-                uint _mss = Mss;
+            {                
                 if (cwnd < ssthresh)
                 {
                     cwnd++;
-                    incr += _mss;
+                    incr += Mss;
                 }
                 else
                 {
-                    incr = Math.Max(incr, _mss);
+                    incr = Math.Max(incr, Mss);
 
-                    incr += _mss * _mss / incr + _mss / 16;
+                    incr += Mss * Mss / incr + Mss / 16;
 
-                    if ((cwnd + 1) * _mss <= incr)
+                    if ((cwnd + 1) * Mss <= incr)
                     {
-                        cwnd = incr + _mss - 1;
+                        cwnd = incr + Mss - 1;
 
-                        if (_mss > 0)
-                            cwnd /= _mss;                            
+                        if (Mss > 0)
+                            cwnd /= Mss;                            
                     }
                 }
                 if (cwnd > RmtWnd)
                 {
                     cwnd = RmtWnd;
-                    incr = RmtWnd * _mss;
+                    incr = RmtWnd * Mss;
                 }                
             }
         }
