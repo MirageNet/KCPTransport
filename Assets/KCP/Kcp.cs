@@ -68,10 +68,14 @@ namespace Mirror.KCP
         public uint RmtWnd { get; private set; }
         public uint Mss => mtu - OVERHEAD - reserved;
 
-        // get how many packet is waiting to be sent
+        /// <summary>
+        /// Returns int count of current packets waiting to be sent
+        /// </summary>
         public int WaitSnd => sendBuffer.Count + sendQueue.Count;
 
-        // internal time.
+        /// <summary>
+        /// Returns uint current internal time in Milliseconds
+        /// </summary>
         public uint CurrentMS => (uint)refTime.ElapsedMilliseconds;
 
         /// <summary>create a new kcp control object</summary>
@@ -92,7 +96,8 @@ namespace Mirror.KCP
         }
 
         /// <summary>PeekSize
-        /// check the size of next message in the recv queue</summary>
+        /// <para>check the size of next message in the recv queue</para>
+        /// <return>Returns int (-1, length or readablebytes)</return></summary>
         public int PeekSize()
         {
             if (receiveQueue.Count == 0)
@@ -119,10 +124,10 @@ namespace Mirror.KCP
         }
 
         /// <summary>Receive
-        /// Receive data from kcp state machine
-        /// <para>Return number of bytes read.</para>
-        /// <para>Return -1 when there is no readable data.</para>
-        /// <para>Return -2 if len(buffer) is smaller than kcp.PeekSize().</para></summary>
+        /// <para>Receive data from kcp state machine</para>
+        /// <return>Return number of bytes read.
+        /// Return -1 when there is no readable data.
+        /// Return -2 if len(buffer) is smaller than kcp.PeekSize().</return></summary>
         /// <param name="buffer"></param>
         /// <param name="index"></param>
         /// <param name="length"></param>
@@ -567,7 +572,8 @@ namespace Mirror.KCP
             }
         }
 
-        /// <summary>Flush</summary>
+        /// <summary><para>Flush</para>
+        /// <return>Returns uint (interval or mintro)</return></summary>
         /// <param name="ackOnly">flush remain ack segments</param>
         public uint Flush(bool ackOnly)
         {
@@ -813,11 +819,12 @@ namespace Mirror.KCP
         /// Determine when should you invoke update
         /// <para>Returns when you should invoke update in millisec, if there
         /// is no input/_send calling. you can call update in that
-        /// time, instead of call update repeatly.</para>
-        /// <para>Important to reduce unnacessary update invoking. use it to
+        /// time, instead of call update repeatly.
+        /// Important to reduce unnacessary update invoking. use it to
         /// schedule update (eg. implementing an epoll-like mechanism, or
-        /// optimize update when handling massive kcp connections)</para>
-        /// <remark> Standard KCP returns time as current + delta.  This version returns delta</remark>
+        /// optimize update when handling massive kcp connections)
+        /// Standard KCP returns time as current + delta.  This version returns delta</para>
+        /// <returns>Returns int (0 or minimum interval)</returns>
         /// </summary>
         public int Check()
         {
@@ -854,7 +861,6 @@ namespace Mirror.KCP
 
             // NOTE: Original KCP returns current time + delta
             // I changed it to only return delta
-
             return  minimal;
         }
 
