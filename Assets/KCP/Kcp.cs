@@ -674,7 +674,8 @@ namespace Mirror.KCP
 
             // check for retransmissions
             current = CurrentMS;
-            ulong change = 0; ulong lostSegs = 0;
+            ulong change = 0;
+            ulong lostSegs = 0;
             int minrto = (int)interval;
 
             for (int k = 0; k < sendBuffer.Count; k++)
@@ -757,8 +758,7 @@ namespace Mirror.KCP
             // rate halving, https://tools.ietf.org/html/rfc6937
             if (change > 0)
             {
-                uint inflght = snd_nxt - snd_una;
-                SetThresh(inflght / 2);
+                SetThresh((snd_nxt - snd_una) / 2);
                 cwnd = ssthresh + resent;
                 incr = cwnd * Mss;
             }
