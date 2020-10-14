@@ -14,8 +14,7 @@ namespace Mirror.KCP
         public const int ASK_TELL = 2;  // need to send CMD_WINS
         public const int WND_SND = 32; // defualt Send Window
         public const int WND_RCV = 32; //default Receive Window
-        public const int ACK_FAST = 3;
-        public const int OVERHEAD = 24;
+        public const int OVERHEAD = 24; //related to MTU
         public const int PROBE_INIT = 7000;   // 7 secs to probe window size
         public const int PROBE_LIMIT = 120000; // up to 120 secs to probe window
 
