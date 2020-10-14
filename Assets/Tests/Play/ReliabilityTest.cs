@@ -9,17 +9,16 @@ using UnityEngine.TestTools;
 namespace Mirror.KCP
 {
 
-    [TestFixture(0f, 0f, 0, 0)]
-    [TestFixture(0.2f, 0f, 0, 0)]
-    [TestFixture(0f, 0.2f, 0, 0)]
-    [TestFixture(0.2f, 0.2f, 0, 0)]
-    [TestFixture(0f, 0f, 0, 20)]
-    [TestFixture(0.2f, 0.2f, 0, 20)]
+    [TestFixture(0f, 0f, 0)]
+    [TestFixture(0.2f, 0f, 0)]
+    [TestFixture(0f, 0.2f, 0)]
+    [TestFixture(0.2f, 0.2f, 0)]
+    [TestFixture(0f, 0f, 20)]
+    [TestFixture(0.2f, 0.2f, 20)]
     public class ReliabilityTest
     {
         private readonly float pdrop;
         private readonly float pdup;
-        private readonly int minLat;
         private readonly int maxLat;
         Kcp client;
         Kcp server;
@@ -33,11 +32,10 @@ namespace Mirror.KCP
         /// <param name="pdup"> probability of duplicating a packet</param>
         /// <param name="minLat">minimum latency of a packet</param>
         /// <param name="maxLat">maximum latency of a packet</param>
-        public ReliabilityTest(float pdrop, float pdup, int minLat, int maxLat)
+        public ReliabilityTest(float pdrop, float pdup, int maxLat)
         {
             this.pdrop = pdrop;
             this.pdup = pdup;
-            this.minLat = minLat;
             this.maxLat = maxLat;
         }
 
@@ -54,7 +52,7 @@ namespace Mirror.KCP
             if (Random.value < pdrop)
                 return;
 
-            int latency = Random.Range(minLat, maxLat);
+            int latency = Random.Range(0, maxLat);
 
             await UniTask.Delay(latency);
             target.Input(data, 0, length, true, false);
