@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/MirrorNG/KCPTransport/compare/v1.0.2...v1.0.3) (2020-10-14)
+
+
+### Performance Improvements
+
+* Remove linq from hot path ([1a857a9](https://github.com/MirrorNG/KCPTransport/commit/1a857a9afaa1c02a9a8bb6dcb4f7487f7301089e))
+
 ## [1.0.2](https://github.com/MirrorNG/KCPTransport/compare/v1.0.1...v1.0.2) (2020-10-13)
 
 
