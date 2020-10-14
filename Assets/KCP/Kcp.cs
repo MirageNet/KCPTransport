@@ -9,8 +9,6 @@ namespace Mirror.KCP
         public enum CommandType : byte {  Push = 81, Ack = 82, WindowAsk = 83, WindowTell = 84};
 
         public const int RTO_NDL = 30;  // no delay min rto
-        public const int RTO_MIN = 100; // normal min rto
-        public const int RTO_DEF = 200; //Default RTO
         public const int RTO_MAX = 60000; //Maximum RTO
         public const int ASK_SEND = 1;  // need to send CMD_WASK
         public const int ASK_TELL = 2;  // need to send CMD_WINS
@@ -39,8 +37,8 @@ namespace Mirror.KCP
         uint ssthresh = 2;
         uint rx_rttval;
         uint rx_srtt;
-        uint rx_rto;
-        uint rx_minrto;
+        uint rx_rto = 200; //Default RTO
+        uint rx_minrto = 100; // normal min rto
         uint cwnd;
         uint probe;
         uint interval = 100;
@@ -88,8 +86,6 @@ namespace Mirror.KCP
             ReceiveWindowMax = WND_RCV;
             RmtWnd = WND_RCV;
             mtu = MTU_DEF;
-            rx_rto = RTO_DEF;
-            rx_minrto = RTO_MIN;
             buffer = new byte[mtu];
             output = output_;
             refTime.Start();
