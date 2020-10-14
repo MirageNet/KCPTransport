@@ -562,6 +562,45 @@ namespace Mirror.KCP
             }
         }
 
+        void FlushAcknowledges(Segment seg)
+        {
+            for (int i = 0; i < ackList.Count; i++)
+            {
+                makeSpace(OVERHEAD);
+                AckItem ack = ackList[i];
+                if (ack.serialNumber >= rcv_nxt || ackList.Count - 1 == i)
+                {
+                    seg.sn = ack.serialNumber;
+                    seg.ts = ack.timestamp;
+                    writeIndex += seg.Encode(buffer, writeIndex);
+                }
+            }
+            ackList.Clear();
+        }
+
+        int SetSendBuffer(uint cwnd_)
+        {
+            // sliding window, controlled by snd_nxt && sna_una+cwnd
+            int newSegsCount = 0;
+            for (int k = 0; k < sendQueue.Count; k++)
+            {
+                if (snd_nxt >= snd_una + cwnd_)
+                    break;
+
+                Segment newseg = sendQueue[k];
+                newseg.conv = conv;
+                newseg.cmd = (uint)CommandType.Push;
+                newseg.sn = snd_nxt;
+                sendBuffer.Add(newseg);
+                snd_nxt++;
+                newSegsCount++;
+            }
+
+            sendQueue.RemoveRange(0, newSegsCount);
+
+            return newSegsCount;
+        }
+
         /// <summary><para>Flush</para>
         /// <return>Returns uint (interval or mintro)</return></summary>
         /// <param name="ackOnly">flush remain ack segments</param>
@@ -575,19 +614,7 @@ namespace Mirror.KCP
 
             writeIndex = (int)reserved;
 
-            // flush acknowledges
-            for (int i = 0; i < ackList.Count; i++)
-            {
-                makeSpace(OVERHEAD);
-                AckItem ack = ackList[i];
-                if (ack.serialNumber >= rcv_nxt || ackList.Count - 1 == i)
-                {
-                    seg.sn = ack.serialNumber;
-                    seg.ts = ack.timestamp;
-                    writeIndex += seg.Encode(buffer, writeIndex);
-                }
-            }
-            ackList.Clear();
+            FlushAcknowledges(seg);
 
             // flush remain ack segments
             if (ackOnly)
@@ -647,22 +674,7 @@ namespace Mirror.KCP
                 cwnd_ = Math.Min(cwnd, cwnd_);
 
             // sliding window, controlled by snd_nxt && sna_una+cwnd
-            int newSegsCount = 0;
-            for (int k = 0; k < sendQueue.Count; k++)
-            {
-                if (snd_nxt >= snd_una + cwnd_)
-                    break;
-
-                Segment newseg = sendQueue[k];
-                newseg.conv = conv;
-                newseg.cmd = (uint)CommandType.Push;
-                newseg.sn = snd_nxt;
-                sendBuffer.Add(newseg);
-                snd_nxt++;
-                newSegsCount++;
-            }
-
-            sendQueue.RemoveRange(0, newSegsCount);
+            int newSegsCount = SetSendBuffer(cwnd_);
 
             // calculate resent
             uint resent = (uint)fastresend;
