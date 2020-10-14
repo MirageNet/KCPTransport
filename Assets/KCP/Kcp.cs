@@ -385,7 +385,6 @@ namespace Mirror.KCP
         /// <param name="ackNoDelay">will trigger immediate ACK, but surely it will not be efficient in bandwidth</param>
         public int Input(byte[] data, int index, int size, bool regular, bool ackNoDelay)
         {
-            uint s_una = snd_una;
             if (size < OVERHEAD) return -1;
 
             int offset = index;
@@ -496,7 +495,7 @@ namespace Mirror.KCP
             }
 
             // cwnd update when packet arrived
-            UpdateCwnd(s_una);
+            UpdateCwnd(snd_una);
 
             // ack immediately
             if (ackNoDelay && ackList.Count > 0)
